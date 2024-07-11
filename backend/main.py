@@ -41,13 +41,17 @@ class Ad(db.Model):
     price=db.Column(db.Integer,nullable=False)
     status = db.Column(db.String(10), nullable=False)
 
-class work(db.Model):
+class Work(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     sp_id=db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     inf_id=db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     ad_id=db.Column(db.Integer, db.ForeignKey('ad.id'), nullable=False)
     state = db.Column(db.String(10), nullable=False)
 
+class Request(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    inf_id=db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    
 
 # Decorator to check user roles
 def auth_role(role):
@@ -197,31 +201,37 @@ def check_ad():
 @app.route("/Influencer", methods=["GET",'POST'])
 def  Influencer():
     v=request.get_json()
-    print(v)
-    
-    cl=[]
+    id=v.get("id")
+    active=[]
+    u=Work.query.filter_by(inf_id=id).all()
+    for i in u:
+        a=Ad.query.filter_by(id=i.ad_id).first()
+        if a.status != "Finished":
+            active.append({"Campaign_id":a.camp_id,"Sponser":i.sp_id,"ad_name":a.name})
+    req=[]
+    r=Request.query.filter_by(inf_id=id).all()
+    for i in r:
+        req.append({"req_id",i.id})
 
-    return {"camp":cl}
+    return {"camp":active,"req":req}
 
 @app.route("/Sponsor", methods=["GET",'POST'])
 @jwt_required()
 def Sponsor():
     v=request.get_json()
-    if v=={}:
-        camp=Campaign.query.filter_by(status="Public").all()
-    # else:
-    #     c=Category.query.filter_by(name=v['key']).all()
-    #     if c==[]:
-    #         it=Item.query.filter_by(name=v['key']).all()
-    #         for j in it:
-    #             c.append(Category.query.filter_by(id=j.cat_id).first())
-    #     else:
-    #         for i in c:
-    #             it.extend(Item.query.filter_by(cat_id=i.id).all())
-    cl=[]
-    for i in camp:
-        cl.append({"id":i.id,"name":i.name})
-    return {"camp":cl}
+    id=v.get("id")
+    active=[]
+    u=Work.query.filter_by(inf_id=id).all()
+    for i in u:
+        a=Ad.query.filter_by(id=i.ad_id).first()
+        if a.status != "Finished":
+            active.append({"Campaign_id":a.camp_id,"Sponser":i.sp_id,"ad_name":a.name})
+    req=[]
+    r=Request.query.filter_by(inf_id=id).all()
+    for i in r:
+        req.append({"req_id",i.id})
+
+    return {"camp":active,"req":req}
 
 @app.route("/Sponsor_req",methods=["GET"])
 def sponsor_req():

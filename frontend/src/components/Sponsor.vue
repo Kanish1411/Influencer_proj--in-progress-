@@ -19,7 +19,7 @@ export default {
   },
   data(){
       return{
-      Inf: [],
+      spn: [],
       idu:0,
       }
   },
@@ -70,7 +70,7 @@ export default {
                   Authorization: "Bearer " + token
               }}
           )
-          this.Inf=response.data.inf;
+          this.spn=response.data.spn;
       },
       async login(){
         this.$router.push("/")
