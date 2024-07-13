@@ -8,11 +8,10 @@
     <h3 v-for="c in camp" :key="c.id">
       <br>
         Name: {{ c.name }}­ ­­­ ­ {{   }} Details:  {{ c.details }} ­ ­­­ ­ Price: {{ c.price }}
-        <button class="btn btn-primary" @click="this.$router.push({name: 'Request_camp', params: { id: i.id, idu: idu },})">Request this Campaign</button>
     <br>
     </h3>
   </ul>
-  <h4 v-else>No Campaigns available Yet</h4>
+  <h4 v-else>No Active Campaigns available Yet</h4>
   <br>
   <h3>Requests</h3>
     <ul v-if="camp.length > 0"> 
@@ -23,7 +22,7 @@
     <br>
     </h3>
   </ul>
-  <h4 v-else>No Campaigns available Yet</h4>
+  <h4 v-else>No Request available Yet</h4>
 </div>
 </div>
 <div v-else>

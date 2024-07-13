@@ -6,6 +6,8 @@ import Influencer from "./components/Influencer.vue"
 import Sponsor from "./components/Sponsor.vue";
 import Admin from "./components/Admin.vue"
 import Request from '.\\components\\Request.vue'
+import Add_camp from "./components/Add_camp.vue"
+
 const routes=[
     {
         path:'/',
@@ -36,6 +38,11 @@ const routes=[
         path:"/request",
         component:Request
     },
+    {
+        path:"/add_camp/:id",
+        component:Add_camp
+    },
+
 
 ]
 

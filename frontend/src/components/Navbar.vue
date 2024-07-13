@@ -35,7 +35,7 @@
         <router-link to="/request" class="nav-link">Requests</router-link>
       </li>
       <li class="nav-item active"  v-if="showCartLink">
-        <router-link :to="`/cart/${id}`"  class="nav-link">Cart</router-link>
+        <router-link :to="`/add_camp/${id}`"  class="nav-link">Cart</router-link>
       </li>
       <li class="nav-item active"  v-if="showUserhome">
         <router-link :to="`/user/${id}`" class="nav-link">Dashboard</router-link>

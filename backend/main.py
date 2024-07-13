@@ -32,6 +32,7 @@ class Campaign(db.Model):
     budget=db.Column(db.Integer,nullable=False)
     status = db.Column(db.String(10), nullable=False)
     details = db.Column(db.String(50))
+    sp_id=db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 class Ad(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -39,7 +40,6 @@ class Ad(db.Model):
     name = db.Column(db.String(10), nullable=False)
     details = db.Column(db.String(50))
     price=db.Column(db.Integer,nullable=False)
-    status = db.Column(db.String(10), nullable=False)
 
 class Work(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -219,19 +219,29 @@ def  Influencer():
 @jwt_required()
 def Sponsor():
     v=request.get_json()
+    print(v)
     id=v.get("id")
-    active=[]
-    u=Work.query.filter_by(inf_id=id).all()
+    print("skjfgiushf",id)
+    camp=[]
+    add=[]
+    u=Campaign.query.filter_by(sp_id=id).all()
+    print(u)
     for i in u:
-        a=Ad.query.filter_by(id=i.ad_id).first()
-        if a.status != "Finished":
-            active.append({"Campaign_id":a.camp_id,"Sponser":i.sp_id,"ad_name":a.name})
+        a=Ad.query.filter_by(camp_id=i.id).all()
+        for j in a:
+            var=""
+            var=User.query.filter_by(id=Work.query.filter_by(ad_id=j.id).first().inf_id).first()
+            if var == "":
+                var="Unassigned"
+            add.append({"Ad_id":j.id,"Name":j.name,"Details":j.details,"Worker":var})
+        camp.append({"camp_id":i.id,"Camp_name":i.name,"Camp_vis":i.status,"ads":add})
+        add=[]
     req=[]
     r=Request.query.filter_by(inf_id=id).all()
     for i in r:
         req.append({"req_id",i.id})
-
-    return {"camp":active,"req":req}
+    print(camp,req)
+    return {"camp":camp,"req":req}
 
 @app.route("/Sponsor_req",methods=["GET"])
 def sponsor_req():
@@ -246,6 +256,16 @@ def Accept():
     v=request.get_json()
     u=User.query.filter_by(id=v.get("id")).first()
     u.approved=True
+    db.session.commit()
+    return {"message":"success"}
+
+@app.route("/add_camp",methods=["GET","POST"]) 
+def add_camp():
+    v=request.get_json()
+    c=Campaign(name=v.get("camp_name"),budget=v.get("camp_bud"),
+               status=v.get("camp_vis"),details=v.get("camp_det"),
+               sp_id=v.get("sp_id"))
+    db.session.add(c)
     db.session.commit()
     return {"message":"success"}
     

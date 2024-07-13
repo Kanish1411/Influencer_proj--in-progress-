@@ -1,118 +1,152 @@
 <template>
   <div v-if="$store.state.checkl && $store.state.checkspn">
-  <Navbar showHomeLink showCartLink/>
-  <div text-align="centre" class="margin-form">
-    <h1>Welcome Sponsor {{ this.idu }}</h1>
-</div>
-</div>
-<div v-else>
-{{ this.login() }}
-</div>
+    <Navbar showHomeLink showCartLink />
+    <div text-align="centre" class="margin-form">
+      <h1>Welcome Sponsor {{ idu }}</h1>
+      <h3>Active Campaigns</h3>
+      <ul v-if="camp.length > 0">
+        <li v-for="c in camp" :key="c.camp_id">
+          <h3>
+            Name: {{ c.Camp_name }} Visibility: {{ c.Camp_vis }}
+          </h3>
+          <h3 v-if="c.ads.length > 0">
+            <ul>
+              <li v-for="a in c.ads" :key="a.Ad_id">
+                Ad Name: {{ a.Name }} Details: {{ a.Details }} Worker: {{ a.Worker }}
+              </li>
+            </ul>
+          </h3>
+          <h3 v-else>
+            No ads
+          </h3>
+        </li>
+      </ul>
+      <h4 v-else>No Active Campaigns available Yet</h4>
+      <br>
+      <h3>Requests</h3>
+      <ul v-if="req.length > 0">
+        <li v-for="r in req" :key="r.req_id">
+          Request ID: {{ r.req_id }}
+        </li>
+      </ul>
+      <h4 v-else>No Requests available Yet</h4>
+    </div>
+  </div>
+  <div v-else>
+    {{ login() }}
+  </div>
 </template>
+
 <script>
 import axios from 'axios';
 import Navbar from './Navbar.vue';
+
 export default {
   name: "Sponsor",
-  components:{
+  components: {
     Navbar,
   },
-  data(){
-      return{
-      spn: [],
-      idu:0,
-      }
+  data() {
+    return {
+      camp: [],
+      req:[],
+      idu: 0,
+    };
   },
   methods: {
-      async checklogin(){
-          let token = localStorage.getItem("token")
-          const response = await axios.get("/check_login", {
-              headers: {
-                  Authorization: "Bearer " + token
-              }}
-          )
-          if (response.data.message == "success") {
-              this.$store.commit("setcheckl", true)
-              console.log(response, this.checkl)
-          }
-          else {
-          this.$store.commit("setcheckl", false)
-          alert("Please login to access this page")
-          console.log(response)
-          this.$router.push('/')
-          }
-      },
-      async checkspn(){
-          let token = localStorage.getItem("token")
-          const response = await axios.get("/check_spn", {
-              headers: {
-                  Authorization: "Bearer " + token
-              }}
-          )
-          if (response.data.message == "success") {
-              this.$store.commit("setcheckspn", true)
-              console.log("ashjdguaysdguayfgiasfgouayfg")
-          }
-          else {
-          this.$store.commit("setcheckspn", false)
-          alert("You are not an Sponsor redirecting to home page")
-          console.log(response)
-          this.$router.push('/')
-          }
-      },
-      async Spn(){
-        let token = localStorage.getItem("token")
-        const response = await axios.post("Sponsor", {
-                    id: this.idu,
-              },
-              {
-              headers: {
-                  Authorization: "Bearer " + token
-              }}
-          )
-          this.spn=response.data.spn;
-      },
-      async login(){
-        this.$router.push("/")
+    async checklogin() {
+      let token = localStorage.getItem("token");
+      const response = await axios.get("/check_login", {
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      });
+      if (response.data.message === "success") {
+        this.$store.commit("setcheckl", true);
+      } else {
+        this.$store.commit("setcheckl", false);
+        alert("Please login to access this page");
+        this.$router.push('/');
       }
+    },
+    async checkspn() {
+      let token = localStorage.getItem("token");
+      const response = await axios.get("/check_spn", {
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      });
+      if (response.data.message === "success") {
+        this.$store.commit("setcheckspn", true);
+      } else {
+        this.$store.commit("setcheckspn", false);
+        alert("You are not a Sponsor. Redirecting to home page");
+        this.$router.push('/');
+      }
+    },
+    async Spn() {
+      try{
+      let token = localStorage.getItem("token");
+      const response = await axios.post(
+        "/Sponsor",
+        {
+          id: this.$route.params.id,
+        },
+        {
+          headers: {
+            Authorization: "Bearer " + token,
+          },
+        }
+      );
+      this.camp=response.data.camp;
+      this.req=response.data.req;
+      console.log(this.camp);
+      }
+      catch(error){
+        console.error("Error fetching DATA:", error);
+      }
+    },
+    login() {
+      this.$router.push("/");
+    },
   },
-  mounted(){
-    if(this.$store.checkl && this.$store.checkspn){
-      console.log("addd")
-      this.Spn();
+  async mounted() {
+    if (this.$store.state.checkl && this.$store.state.checkspn) {
+      await this.Spn();
     }
   },
-  created(){
-      this.checklogin(),
-      this.checkspn(),
-      this.idu= this.$route.params.id;
-      console.log(this.idu);
-  }
+  async created() {
+    await this.checklogin();
+    await this.checkspn();
+    this.idu = this.$route.params.id;
+    console.log(this.idu);
+  },
 };
 </script>
+
 <style scoped>
 .margin-form {
-margin: 40px;
+  margin: 40px;
 }
 
 .message {
-position: fixed;
-top: 6%;
-left: 50%;
-transform: translateX(-50%);
-padding: 10px;
-width: 100%;
-text-align: center;
-transition: top 0.5s ease;
+  position: fixed;
+  top: 6%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px;
+  width: 100%;
+  text-align: center;
+  transition: top 0.5s ease;
 }
 
 .success-message {
-background-color: #4CAF50;
-color: white;
+  background-color: #4CAF50;
+  color: white;
 }
 
 .error-message {
-background-color: #FF0000;
-color: white;
+  background-color: #FF0000;
+  color: white;
 }
 </style>
