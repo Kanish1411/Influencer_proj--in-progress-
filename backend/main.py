@@ -38,7 +38,7 @@ class Ad(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     camp_id=db.Column(db.Integer, db.ForeignKey('campaign.id'), nullable=False)
     name = db.Column(db.String(10), nullable=False)
-    details = db.Column(db.String(50))
+    req = db.Column(db.String(50))
     price=db.Column(db.Integer,nullable=False)
 
 class Work(db.Model):
@@ -219,24 +219,25 @@ def  Influencer():
 @jwt_required()
 def Sponsor():
     v=request.get_json()
-    print(v)
     id=v.get("id")
-    print("skjfgiushf",id)
     camp=[]
     add=[]
     u=Campaign.query.filter_by(sp_id=id).all()
-    print(u)
     for i in u:
         a=Ad.query.filter_by(camp_id=i.id).all()
         for j in a:
-            var=""
-            var=User.query.filter_by(id=Work.query.filter_by(ad_id=j.id).first().inf_id).first()
-            if var == "":
-                var="Unassigned"
-            add.append({"Ad_id":j.id,"Name":j.name,"Details":j.details,"Worker":var})
+            var="Unassigned"
+            w=Work.query.filter_by(ad_id=j.id).first()
+            if w:
+                inf=w.inf_id
+                var=User.query.filter_by(id=inf).first().name
+            add.append({"Ad_id":j.id,"Name":j.name,"Req":j.req,"Worker":var})
         camp.append({"camp_id":i.id,"Camp_name":i.name,"Camp_vis":i.status,"ads":add})
         add=[]
+    #didnt start working on this 
+
     req=[]
+
     r=Request.query.filter_by(inf_id=id).all()
     for i in r:
         req.append({"req_id",i.id})
@@ -268,7 +269,61 @@ def add_camp():
     db.session.add(c)
     db.session.commit()
     return {"message":"success"}
-    
+
+@app.route("/update_camp",methods=["GET","POST"]) 
+def Update_camp():
+    v=request.get_json()
+    c=Campaign.query.filter_by(id=v.get("id")).first()
+    print(c)
+    if c:
+        c.name=v.get("camp_name")
+        c.budget=v.get("camp_bud")
+        c.status=v.get("camp_vis")
+        c.details=v.get("camp_det")
+        db.session.commit()
+        return {"message":"success"}
+    return {"message":"Failed"}
+
+@app.route("/delete_camp",methods=['GET','POST'])
+def delete_camp():
+    v = request.get_json()
+    c=Campaign.query.filter_by(id=v.get("id")).first()
+    ad=Ad.query.filter_by(camp_id=c.id).all()
+    for i in ad:
+        db.session.delete(i)
+    db.session.delete(c)
+    db.session.commit()
+    return {"message":"success"}
+
+@app.route("/add_ad",methods=["GET","POST"]) 
+def add_ad():
+    v=request.get_json()
+    a=Ad(name=v.get("ad_name"),price=v.get("ad_bud"),
+              req=v.get("ad_req"),camp_id=v.get("id"))
+    db.session.add(a)
+    db.session.commit()
+    return {"message":"success"}
+
+@app.route("/update_ad",methods=["GET","POST"]) 
+def Update_ad():
+    v=request.get_json()
+    a=Ad.query.filter_by(id=v.get("id")).first()
+    print(a)
+    if a:
+        a.name=v.get("ad_name")
+        a.price=v.get("ad_bud")
+        a.req=v.get("ad_req")
+        db.session.commit()
+        return {"message":"success"}
+    return {"message":"Failed"}
+
+@app.route("/delete_ad",methods=['GET','POST'])
+def delete_ad():
+    v = request.get_json()
+    a=Ad.query.filter_by(id=v.get("id")).first()
+    db.session.delete(a)
+    db.session.commit()
+    return {"message":"success"}
 
 if __name__ == "__main__":
     with app.app_context():
