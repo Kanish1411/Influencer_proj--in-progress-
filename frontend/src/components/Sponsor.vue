@@ -1,6 +1,6 @@
 <template>
   <div v-if="$store.state.checkl && $store.state.checkspn">
-    <Navbar showHomeLink showCartLink />
+    <Navbar showHomeLink showCampLink showFindinf />
     <div text-align="centre" class="margin-form">
       <h1>Welcome Sponsor {{ idu }}</h1>
       <h2>Active Campaigns</h2>

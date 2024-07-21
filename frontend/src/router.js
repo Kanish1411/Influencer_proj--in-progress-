@@ -9,6 +9,8 @@ import Add_camp from "./components/Add_camp.vue"
 import Add_ad from "./components/Add_ad.vue"
 import Update_camp from "./components/Update_camp.vue"
 import Update_ad from "./components/Update_ad.vue"
+import Find_inf from "./components/Find_inf.vue"
+
 
 
 const routes=[
@@ -60,10 +62,12 @@ const routes=[
     path:"/update_ad/:sp_id/:id",
     name:"Update_ad",
     component:Update_ad,
-},
+    },
+    {
+        path:"/find_inf/:id",
+        component:Find_inf
+    },
     
-
-
 ]
 
 const router=createRouter({

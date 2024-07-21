@@ -20,6 +20,9 @@
           <option value="Influencer">Influencer</option>
         </select>
         <br>
+        <label for="addon">Additional details (Platform for Inf, Industry for spn):</label>
+        <input class="form-control" type="text" v-model="addon">
+        <br>
         <button class="btn btn-primary" type="submit">Register</button>
       </form>
       <div v-if="error" class="message error-message">{{ error }}</div>
@@ -40,6 +43,7 @@ export default {
       regPassword: '',
       regEmail: '',
       regRole: '',
+      addon:"",
       error: null,
       message: null,
     };
@@ -52,12 +56,14 @@ export default {
           password: this.regPassword,
           email: this.regEmail,
           role: this.regRole,
+          addon:this.addon,
         });
         this.message = response.data.message;
         this.regUsername = '';
         this.regPassword = '';
         this.regEmail = '';
         this.regRole = '';
+        this.addon="";
         window.scrollTo(0, 0);
         
       } catch (error) {

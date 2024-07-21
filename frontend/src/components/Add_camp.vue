@@ -1,6 +1,6 @@
 <template>
   <div v-if="$store.state.checkl && $store.state.checkspn">
-  <Navbar showHomeLink showCartLink/>
+  <Navbar showspHomeLink/>
   <div text-align="centre" class="margin-form">
     <form @submit.prevent="Add_camp">
         <label for="camp_name">Campaign Name:</label>

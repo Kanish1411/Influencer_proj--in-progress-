@@ -51,7 +51,12 @@ class Work(db.Model):
 class Request(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     inf_id=db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    
+
+class Inf_additional(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    inf_id=db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    rating=db.Column(db.Integer, nullable=False)
+    platform=db.Column(db.String(10), nullable=False)
 
 # Decorator to check user roles
 def auth_role(role):
@@ -67,15 +72,12 @@ def auth_role(role):
         return decorator
     return wrapper
 
-
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
-    print(username)
     users=User.query.filter_by(name=username).all()
-    print(users)
     for u in users:
         if u.name == username and check_password_hash(u.pwd,password):
             if u.role_id==1:
@@ -132,6 +134,7 @@ def register():
     username = data.get('username')
     password = data.get('password')
     em = data.get('email')
+    additional= data.get('addon')
     r=data.get('role')
     users=User.query.filter_by(role_id=Role.query.filter_by(name=r).first().id).all()
     if users and any(u.name == username for u in users):
@@ -141,6 +144,9 @@ def register():
     if r=="Influencer":
         u=User(email=em,pwd=generate_password_hash(password),name=username,role_id=3)
         db.session.add(u)
+        db.session.commit()
+        inf=Inf_additional(inf_id=u.id,rating=5,platform=additional)
+        db.session.add(inf)
         db.session.commit()
     if r=="Sponsor":
         u=User(email=em,pwd=generate_password_hash(password),name=username,role_id=2,approved=False)
@@ -234,10 +240,10 @@ def Sponsor():
             add.append({"Ad_id":j.id,"Name":j.name,"Req":j.req,"Worker":var})
         camp.append({"camp_id":i.id,"Camp_name":i.name,"Camp_vis":i.status,"ads":add})
         add=[]
+   
     #didnt start working on this 
 
     req=[]
-
     r=Request.query.filter_by(inf_id=id).all()
     for i in r:
         req.append({"req_id",i.id})
@@ -324,6 +330,24 @@ def delete_ad():
     db.session.delete(a)
     db.session.commit()
     return {"message":"success"}
+
+@app.route("/find_inf",methods=['GET','POST'])
+def Find_inf():
+    v = request.get_json()
+    key=v.get("keyword")
+    print(key)
+    inf=0
+    if key=="" or key==None:
+        inf=User.query.filter_by(role_id=3).all()
+    else:
+        # if "rating" in key:
+        inf=User.query.filter_by(role_id=3,name=key).all()
+    l=[]
+    for i in inf:
+        inf_add=Inf_additional.query.filter_by(inf_id=i.id).first()
+        l.append({"name":i.name,"Rating":inf_add.rating,"platform":inf_add.platform})
+    print(l)
+    return {"inf":l}
 
 if __name__ == "__main__":
     with app.app_context():

@@ -17,7 +17,7 @@
         <router-link to="/admin" class="nav-link">Dashboard</router-link>
       </li>
       <li class="nav-item active"  v-if="showspHomeLink">
-        <router-link to="`/Sponsor/${id}`" class="nav-link">Dashboard</router-link>
+        <router-link :to="{ name: 'Sponsor', params: { id: this.id } }"  class="nav-link">Dashboard</router-link>
       </li>
       <li class="nav-item active"  v-if="showLoginLink">
         <router-link to="/" class="nav-link">Login</router-link>
@@ -29,13 +29,13 @@
         <router-link to="/about" class="nav-link">About</router-link>
       </li>
       <li class="nav-item active"  v-if="showAddcatLink">
-        <router-link to="/addcat" class="nav-link">Add Category</router-link>
+        <router-link to="/addcat" class="nav-link">Add Campaign</router-link>
       </li>
       <li class="nav-item active"  v-if="showReqLink">
         <router-link to="/request" class="nav-link">Requests</router-link>
       </li>
-      <li class="nav-item active"  v-if="showCartLink">
-        <router-link :to="`/add_camp/${id}`"  class="nav-link">Cart</router-link>
+      <li class="nav-item active"  v-if="showCampLink">
+        <router-link :to="`/add_camp/${id}`"  class="nav-link">Add Campaign</router-link>
       </li>
       <li class="nav-item active"  v-if="showUserhome">
         <router-link :to="`/user/${id}`" class="nav-link">Dashboard</router-link>
@@ -45,6 +45,9 @@
       </li>
       <li class="nav-item active"  v-if="showDashman">
         <router-link :to="`/manager/${id}`" class="nav-link">Dashboard</router-link>
+      </li>
+      <li class="nav-item active"  v-if="showFindinf">
+        <router-link :to="`/find_inf/${id}`" class="nav-link">Find Influencers</router-link>
       </li>
     </ul>
   </div>
@@ -91,7 +94,7 @@ export default {
       type: Boolean,
       default: false,
     },
-    showCartLink: {
+    showCampLink: {
       type: Boolean,
       default: false,
     },
@@ -104,6 +107,10 @@ export default {
       default: false,
     },
     showDashman: {
+      type: Boolean,
+      default: false,
+    },
+    showFindinf: {
       type: Boolean,
       default: false,
     },
