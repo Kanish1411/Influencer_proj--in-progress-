@@ -14,7 +14,7 @@
        <b>Platforms: </b>{{ i.platform }}<br>
        <b> Rating:</b> {{ i.Rating }}
         <br>
-        <button class="btn btn-primary" @click="this.req(i.id)">Request</button>
+        <button class="btn btn-primary" @click="this.$router.push({name: 'Req_inf',params:{ sp_id: this.idu, inf_id:i.id}})">Request</button>
       <br>
       </h3>
     </ul>
@@ -89,10 +89,6 @@ export default {
           this.$router.push("/")
         }
     },
-    async req(id){
-      let token=localStorage.getItem("token")
-      
-    }
     async mounted() { 
     if (this.$store.state.checkl && this.$store.state.checkspn) {
       await this.search();

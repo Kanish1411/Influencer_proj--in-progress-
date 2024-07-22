@@ -345,9 +345,51 @@ def Find_inf():
     l=[]
     for i in inf:
         inf_add=Inf_additional.query.filter_by(inf_id=i.id).first()
-        l.append({"name":i.name,"Rating":inf_add.rating,"platform":inf_add.platform})
+        l.append({"name":i.name,"Rating":inf_add.rating,"platform":inf_add.platform,"id":i.id})
     print(l)
     return {"inf":l}
+
+@app.route("/influencers", methods=["GET"])
+def inf_fetch():
+    user_id = request.args.get('id')
+    user = User.query.filter_by(id=user_id).first()
+    if user:
+        return jsonify({"name": user.name,"email": user.email,})
+    else:
+        return jsonify({"error": "User not found"}), 404
+
+@app.route("/campaigns", methods=["GET"])
+def camp_fetch():
+    user_id = request.args.get('id')
+    camp = Campaign.query.filter_by(sp_id=user_id).all()
+    print(camp)
+    l=[]
+    if camp:
+        for i in camp:
+            l.append({"name": i.name,"id": i.id,})
+    else:
+        return jsonify({"error": "User not found"}), 404
+    print(l)
+    return jsonify(l)
+
+@app.route("/ads", methods=["GET"])
+def ads_fetch():
+    id = request.args.get('id')
+    ad = Ad.query.filter_by(camp_id=id).all()
+    print(ad)
+    l=[]
+    if ad:
+        for i in ad:
+            l.append({"name": i.name,"id": i.id,})
+    else:
+        return jsonify({"error": "User not found"}), 404
+    print(l)
+    return jsonify(l)
+
+@app.route("/request_inf",methods=["POST"])
+def request_inf():
+
+    return jsonify()
 
 if __name__ == "__main__":
     with app.app_context():
