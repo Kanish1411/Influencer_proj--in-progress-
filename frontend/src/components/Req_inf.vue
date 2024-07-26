@@ -19,7 +19,9 @@
       <label for="adSelect">Select Ad:</label>
       <select id="adSelect" v-model="ad_id">
         <option v-for="ad in ads" :key="ad.id" :value="ad.id">
-          {{ ad.name }}
+          <template v-if="ad.inf_id !=this.inf_id">
+            {{ ad.name }}
+          </template>
         </option>
       </select>
       <br>
@@ -56,13 +58,54 @@ export default {
     };
   },
   methods: {
+    async checklogin(){
+          let token = localStorage.getItem("token")
+          const response = await axios.get("/check_login", {
+              headers: {
+                  Authorization: "Bearer " + token
+              }}
+          )
+          if (response.data.message == "success") {
+              this.$store.commit("setcheckl", true)
+              console.log(response, this.checkl)
+          }
+          else {
+          this.$store.commit("setcheckl", false)
+          alert("Please login to access this page")
+          console.log(response)
+          this.$router.push('/')
+          }
+      },
+      async checkspn(){
+          let token = localStorage.getItem("token")
+          const response = await axios.get("/check_spn", {
+              headers: {
+                  Authorization: "Bearer " + token
+              }}
+          )
+          if (response.data.message == "success") {
+              this.$store.commit("setcheckspn", true)
+          }
+          else {
+          this.$store.commit("setcheckspn", false)
+          alert("You are not an Sponsor redirecting to home page")
+          console.log(response)
+          this.$router.push('/')
+          }
+      },
     async request(){
-      console.log("askjdgiagbsdkjabdb");
       const res=await axios.post("/request_inf",{
         inf_id:this.inf_id,
         camp_id:this.camp_id,
         ad_id:this.ad_id,
       })
+      if(res.data.message=="success"){
+        this.$router.push({name:"Sponsor",params:{id:this.sp_id}});
+      }
+      else{
+        window.alert("Request For the following ad is Accepted")
+        this.$router.push({name:"Sponsor",params:{id:this.sp_id}});
+      }
     },
   async fetchInfluencerDetails() {
     try {
@@ -99,6 +142,10 @@ export default {
       }
     }
   },
+  
+  async login(){
+        this.$router.push("/")
+      }
 },
 
   mounted() {
@@ -108,9 +155,39 @@ export default {
     this.fetchInfluencerDetails();
     this.fetchCampaigns();
   },
+  created(){
+      this.checklogin(),
+      this.checkspn(),
+      this.id= this.$route.params.id;
+      this.sp_id=this.$route.params.sp_id;
+      console.log(this.idu);
+  }
 };
 </script>
 
 <style scoped>
-/* Add any relevant styles here */
+.margin-form {
+margin: 40px;
+}
+
+.message {
+position: fixed;
+top: 6%;
+left: 50%;
+transform: translateX(-50%);
+padding: 10px;
+width: 100%;
+text-align: center;
+transition: top 0.5s ease;
+}
+
+.success-message {
+background-color: #4CAF50;
+color: white;
+}
+
+.error-message {
+background-color: #FF0000;
+color: white;
+}
 </style>

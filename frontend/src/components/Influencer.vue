@@ -1,20 +1,20 @@
 <template>
   <div v-if="$store.state.checkl && $store.state.checkinf">
-  <Navbar showHomeLink showCartLink/>
+  <Navbar showHomeLink showCaLink/>
   <div text-align="centre" class="margin-form">
     <h2>Welcome Influencer {{ this.idu }}</h2>
     <h3>Active Campaigns</h3>
-    <ul v-if="camp.length > 0"> 
+    <!-- <ul v-if="camp.length > 0"> 
     <h3 v-for="c in camp" :key="c.id">
       <br>
         Name: {{ c.name }}­ ­­­ ­ {{   }} Details:  {{ c.details }} ­ ­­­ ­ Price: {{ c.price }}
     <br>
     </h3>
-  </ul>
-  <h4 v-else>No Active Campaigns available Yet</h4>
+  </ul> -->
+  <!-- <h4 v-else>No Active Campaigns available Yet</h4> -->
   <br>
   <h3>Requests</h3>
-    <ul v-if="camp.length > 0"> 
+    <!-- <ul v-if="camp.length > 0"> 
     <h3 v-for="c in camp" :key="c.id">
       <br>
         Name: {{ c.name }}­ ­­­ ­ {{   }} Details:  {{ c.details }} ­ ­­­ ­ Price: {{ c.price }}
@@ -22,7 +22,7 @@
     <br>
     </h3>
   </ul>
-  <h4 v-else>No Request available Yet</h4>
+  <h4 v-else>No Request available Yet</h4> -->
 </div>
 </div>
 <div v-else>
@@ -54,7 +54,7 @@ export default {
           )
           if (response.data.message == "success") {
               this.$store.commit("setcheckl", true)
-              console.log(response, this.checkl)
+              console.log(response, this.$store.checkl)
           }
           else {
           this.$store.commit("setcheckl", false)
@@ -80,8 +80,8 @@ export default {
       },
       async Inf(){
         let token = localStorage.getItem("token")
-        const response = await axios.post("Influencer", {
-                id: this.idu,
+        const response = await axios.post("/Influencer", {
+                id: this.$route.params.id,
               },
               {
               headers: {

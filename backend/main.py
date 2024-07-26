@@ -50,7 +50,10 @@ class Work(db.Model):
 
 class Request(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    inf_id=db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    req_id=db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    camp_id=db.Column(db.Integer, db.ForeignKey('campaign.id'), nullable=False)
+    ad_id=db.Column(db.Integer, db.ForeignKey('ad.id'), nullable=False)
+    approved=db.Column(db.Boolean, nullable=False)
 
 class Inf_additional(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -204,10 +207,13 @@ def check_ad():
             return {"message":"success"}
     return {"message" : "Fail"}
 
-@app.route("/Influencer", methods=["GET",'POST'])
-def  Influencer():
+@app.route("/Influencer", methods=['GET','POST'])
+@jwt_required()
+def Influencer():
+    print("askusjdghiasudghiaugd")
     v=request.get_json()
     id=v.get("id")
+    print(id)
     active=[]
     u=Work.query.filter_by(inf_id=id).all()
     for i in u:
@@ -215,10 +221,10 @@ def  Influencer():
         if a.status != "Finished":
             active.append({"Campaign_id":a.camp_id,"Sponser":i.sp_id,"ad_name":a.name})
     req=[]
-    r=Request.query.filter_by(inf_id=id).all()
+    r=Request.query.filter_by(req_id=id).all()
     for i in r:
         req.append({"req_id",i.id})
-
+    print(req)
     return {"camp":active,"req":req}
 
 @app.route("/Sponsor", methods=["GET",'POST'])
@@ -244,7 +250,7 @@ def Sponsor():
     #didnt start working on this 
 
     req=[]
-    r=Request.query.filter_by(inf_id=id).all()
+    r=Request.query.filter_by(req_id=id).all()
     for i in r:
         req.append({"req_id",i.id})
     print(camp,req)
@@ -346,7 +352,6 @@ def Find_inf():
     for i in inf:
         inf_add=Inf_additional.query.filter_by(inf_id=i.id).first()
         l.append({"name":i.name,"Rating":inf_add.rating,"platform":inf_add.platform,"id":i.id})
-    print(l)
     return {"inf":l}
 
 @app.route("/influencers", methods=["GET"])
@@ -376,20 +381,29 @@ def camp_fetch():
 def ads_fetch():
     id = request.args.get('id')
     ad = Ad.query.filter_by(camp_id=id).all()
-    print(ad)
     l=[]
     if ad:
         for i in ad:
-            l.append({"name": i.name,"id": i.id,})
+                v=Request.query.filter_by(ad_id=i.id,camp_id=id).first()
+                if v.approved==False:
+                    l.append({"name": i.name,"id": i.id,"inf_id":v.req_id})
     else:
         return jsonify({"error": "User not found"}), 404
-    print(l)
     return jsonify(l)
 
 @app.route("/request_inf",methods=["POST"])
 def request_inf():
-
-    return jsonify()
+    v=request.get_json()
+    inf_id=int(v.get("inf_id"))
+    camp_id=v.get("camp_id")
+    ad_id=v.get("ad_id")
+    r1=Request.query.filter_by(ad_id=ad_id,camp_id=camp_id).first()
+    if(r1!=None and r1.approved==True):
+        r=Request(req_id=inf_id,camp_id=camp_id,ad_id=ad_id,approved=False)
+        db.session.add(r)
+        db.session.commit()
+        return jsonify({"message":"success"})
+    return jsonify({"message":"Failed"})
 
 if __name__ == "__main__":
     with app.app_context():
