@@ -53,7 +53,7 @@ class Request(db.Model):
     req_id=db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     camp_id=db.Column(db.Integer, db.ForeignKey('campaign.id'), nullable=False)
     ad_id=db.Column(db.Integer, db.ForeignKey('ad.id'), nullable=False)
-    approved=db.Column(db.Boolean, nullable=False)
+    accepted=db.Column(db.Boolean, nullable=False)
 
 class Inf_additional(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -210,10 +210,8 @@ def check_ad():
 @app.route("/Influencer", methods=['GET','POST'])
 @jwt_required()
 def Influencer():
-    print("askusjdghiasudghiaugd")
     v=request.get_json()
     id=v.get("id")
-    print(id)
     active=[]
     u=Work.query.filter_by(inf_id=id).all()
     for i in u:
@@ -223,8 +221,10 @@ def Influencer():
     req=[]
     r=Request.query.filter_by(req_id=id).all()
     for i in r:
-        req.append({"req_id",i.id})
-    print(req)
+        a=Ad.query.filter_by(id=i.ad_id).first()
+        c=Campaign.query.filter_by(id=a.camp_id).first()
+        req.append({"id":i.id,"name":a.name,"req":a.req,"camp":c.name})
+    print(active,req)
     return {"camp":active,"req":req}
 
 @app.route("/Sponsor", methods=["GET",'POST'])
@@ -246,13 +246,11 @@ def Sponsor():
             add.append({"Ad_id":j.id,"Name":j.name,"Req":j.req,"Worker":var})
         camp.append({"camp_id":i.id,"Camp_name":i.name,"Camp_vis":i.status,"ads":add})
         add=[]
-   
-    #didnt start working on this 
-
     req=[]
     r=Request.query.filter_by(req_id=id).all()
+    print(r)
     for i in r:
-        req.append({"req_id",i.id})
+        req.append({"req_id":i.id})
     print(camp,req)
     return {"camp":camp,"req":req}
 
@@ -385,8 +383,11 @@ def ads_fetch():
     if ad:
         for i in ad:
                 v=Request.query.filter_by(ad_id=i.id,camp_id=id).first()
-                if v.approved==False:
+                if v==None:
+                    l.append({"name": i.name,"id": i.id})
+                elif v.accepted==False:
                     l.append({"name": i.name,"id": i.id,"inf_id":v.req_id})
+                
     else:
         return jsonify({"error": "User not found"}), 404
     return jsonify(l)
@@ -397,9 +398,19 @@ def request_inf():
     inf_id=int(v.get("inf_id"))
     camp_id=v.get("camp_id")
     ad_id=v.get("ad_id")
-    r1=Request.query.filter_by(ad_id=ad_id,camp_id=camp_id).first()
-    if(r1!=None and r1.approved==True):
-        r=Request(req_id=inf_id,camp_id=camp_id,ad_id=ad_id,approved=False)
+    r1=None
+    if(ad_id==None):
+        return jsonify({"message":"No Ad selected"})
+    if(ad_id !=None):
+        r1=Request.query.filter_by(ad_id=ad_id,camp_id=camp_id).first()
+ 
+    if(r1!=None and r1.accepted==True):
+        r=Request(req_id=inf_id,camp_id=camp_id,ad_id=ad_id,accepted=False)
+        db.session.add(r)
+        db.session.commit()
+        return jsonify({"message":"success"})
+    elif(r1==None):
+        r=Request(req_id=inf_id,camp_id=camp_id,ad_id=ad_id,accepted=False)
         db.session.add(r)
         db.session.commit()
         return jsonify({"message":"success"})

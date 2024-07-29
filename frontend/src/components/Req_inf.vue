@@ -51,7 +51,7 @@ export default {
       sp_id: 0,
       inf_id: 0,
       camp_id: 0,
-      ad_id: 0,
+      ad_id: null,
       influencer: null,
       campaigns: [],
       ads: [],
@@ -102,8 +102,12 @@ export default {
       if(res.data.message=="success"){
         this.$router.push({name:"Sponsor",params:{id:this.sp_id}});
       }
+      else if(res.data.message=="Failed"){
+        window.alert("Request For the following ad is Accepted");
+        this.$router.push({name:"Sponsor",params:{id:this.sp_id}});
+      }
       else{
-        window.alert("Request For the following ad is Accepted")
+        window.alert(res.data.message);
         this.$router.push({name:"Sponsor",params:{id:this.sp_id}});
       }
     },

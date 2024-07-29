@@ -4,25 +4,26 @@
   <div text-align="centre" class="margin-form">
     <h2>Welcome Influencer {{ this.idu }}</h2>
     <h3>Active Campaigns</h3>
-    <!-- <ul v-if="camp.length > 0"> 
+    <ul v-if="camp.length > 0"> 
     <h3 v-for="c in camp" :key="c.id">
       <br>
         Name: {{ c.name }}­ ­­­ ­ {{   }} Details:  {{ c.details }} ­ ­­­ ­ Price: {{ c.price }}
-    <br>
-    </h3>
-  </ul> -->
-  <!-- <h4 v-else>No Active Campaigns available Yet</h4> -->
-  <br>
-  <h3>Requests</h3>
-    <!-- <ul v-if="camp.length > 0"> 
-    <h3 v-for="c in camp" :key="c.id">
-      <br>
-        Name: {{ c.name }}­ ­­­ ­ {{   }} Details:  {{ c.details }} ­ ­­­ ­ Price: {{ c.price }}
-        <button class="btn btn-primary" @click="this.$router.push({name: 'Request_camp', params: { id: i.id, idu: idu },})">Request this Campaign</button>
     <br>
     </h3>
   </ul>
-  <h4 v-else>No Request available Yet</h4> -->
+  <h4 v-else>No Active Campaigns available Yet</h4>
+  <br>
+  <h3>Requests</h3>
+    <ul v-if="req.length > 0"> 
+    <h4 v-for="r in req" :key="r.id">
+        Name: {{ r.name }}    <br>
+        Request: {{ r.req }}<br>
+        Campaign: {{ r.camp }} <br>
+        <button class="btn btn-primary" @click="this.$router.push({name: 'Request_camp', params: { id: i.id, idu: idu },})">Accept</button>
+
+    </h4>
+  </ul>
+  <h4 v-else>No Request available Yet</h4>
 </div>
 </div>
 <div v-else>
@@ -41,6 +42,7 @@ export default {
   data(){
       return{
       camp: [],
+      req:[],
       idu:0,
       }
   },
@@ -89,15 +91,14 @@ export default {
               }}
           )
           this.camp=response.data.camp;
+          this.req=response.data.req;
       },
       async login(){
         this.$router.push("/")
       }
   },
   mounted(){
-    if(this.$store.checkl && this.$store.checkinf){
       this.Inf();
-    }
   },
   created(){
       this.checklogin(),
