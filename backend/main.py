@@ -51,6 +51,7 @@ class Work(db.Model):
 class Request(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     req_id=db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    req_from_id=db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     camp_id=db.Column(db.Integer, db.ForeignKey('campaign.id'), nullable=False)
     ad_id=db.Column(db.Integer, db.ForeignKey('ad.id'), nullable=False)
     accepted=db.Column(db.Boolean, nullable=False)
@@ -216,15 +217,16 @@ def Influencer():
     u=Work.query.filter_by(inf_id=id).all()
     for i in u:
         a=Ad.query.filter_by(id=i.ad_id).first()
-        if a.status != "Finished":
+        if i.state!= "Finished":
             active.append({"Campaign_id":a.camp_id,"Sponser":i.sp_id,"ad_name":a.name})
     req=[]
     r=Request.query.filter_by(req_id=id).all()
     for i in r:
-        a=Ad.query.filter_by(id=i.ad_id).first()
-        c=Campaign.query.filter_by(id=a.camp_id).first()
-        req.append({"id":i.id,"name":a.name,"req":a.req,"camp":c.name})
-    print(active,req)
+        if i.accepted==False:
+            a=Ad.query.filter_by(id=i.ad_id).first()
+            c=Campaign.query.filter_by(id=a.camp_id).first()
+            req.append({"id":i.id,"name":a.name,"req":a.req,"camp":c.name})
+        print(active,req)
     return {"camp":active,"req":req}
 
 @app.route("/Sponsor", methods=["GET",'POST'])
@@ -357,7 +359,7 @@ def inf_fetch():
     user_id = request.args.get('id')
     user = User.query.filter_by(id=user_id).first()
     if user:
-        return jsonify({"name": user.name,"email": user.email,})
+        return jsonify({"name": user.name,"email": user.email})
     else:
         return jsonify({"error": "User not found"}), 404
 
@@ -398,23 +400,61 @@ def request_inf():
     inf_id=int(v.get("inf_id"))
     camp_id=v.get("camp_id")
     ad_id=v.get("ad_id")
+    sp_id=v.get("ad_id")
     r1=None
-    if(ad_id==None):
-        return jsonify({"message":"No Ad selected"})
+    if(ad_id==None or camp_id==None):
+        return jsonify({"message":"Fields not selected"})
     if(ad_id !=None):
         r1=Request.query.filter_by(ad_id=ad_id,camp_id=camp_id).first()
- 
     if(r1!=None and r1.accepted==True):
-        r=Request(req_id=inf_id,camp_id=camp_id,ad_id=ad_id,accepted=False)
+        r=Request(req_id=inf_id,req_from_id=sp_id,camp_id=camp_id,ad_id=ad_id,accepted=False)
         db.session.add(r)
         db.session.commit()
         return jsonify({"message":"success"})
     elif(r1==None):
-        r=Request(req_id=inf_id,camp_id=camp_id,ad_id=ad_id,accepted=False)
+        r=Request(req_id=inf_id,camp_id=camp_id,req_from_id=sp_id,ad_id=ad_id,accepted=False)
         db.session.add(r)
         db.session.commit()
         return jsonify({"message":"success"})
     return jsonify({"message":"Failed"})
+
+@app.route("/accept_req",methods=["POST"])
+def accept_req():
+    v=request.get_json()
+    id=v.get("id")
+    r=Request.query.filter_by(id=id).first()
+    print(r)
+    r.accepted=True
+    c=Campaign.query.filter_by(id=r.camp_id).first()
+    w=Work(sp_id=c.sp_id,inf_id=r.req_id,ad_id=r.ad_id,state="Accepted")
+    db.session.add(w)
+    db.session.commit()
+    return jsonify({"msg":"success"})
+
+@app.route("/reject_req",methods=["POST"])
+def reject_req():
+    v=request.get_json()
+    id=v.get("id")
+    r=Request.query.filter_by(id=id).first()
+    db.session.delete(r)
+    db.session.commit()
+    return jsonify({"msg":"success"}) 
+
+@app.route("/find_spn", methods=["GET"])
+def sp_fetch():
+    camp=Campaign.query.all()
+    l=[]
+    for i in camp:
+        ad=Ad.query.filter_by(camp_id=i.id).all()
+        if ad:
+            for j in ad:
+                w=Work.query.filter_by(ad_id=j.id).first()
+                if w:
+                    continue
+                if w==None and i.status=="public":
+                    l.append({"ad name":j.name,"camp name":i.name,"task":j.req,"price":j.price})
+    print(l)
+    return jsonify(l)
 
 if __name__ == "__main__":
     with app.app_context():

@@ -49,6 +49,9 @@
       <li class="nav-item active"  v-if="showFindinf">
         <router-link :to="`/find_inf/${id}`" class="nav-link">Find Influencers</router-link>
       </li>
+      <li class="nav-item active"  v-if="showFindspn">
+        <router-link :to="`/find_spn/${id}`" class="nav-link">Find Sponsors</router-link>
+      </li>
     </ul>
   </div>
 </nav>
@@ -111,6 +114,10 @@ export default {
       default: false,
     },
     showFindinf: {
+      type: Boolean,
+      default: false,
+    },
+    showFindspn: {
       type: Boolean,
       default: false,
     },

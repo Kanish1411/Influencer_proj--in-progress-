@@ -1,55 +1,35 @@
 <template>
-  <div v-if="$store.state.checkl && $store.state.checkinf">
-  <Navbar showHomeLink showFindspn/>
-  <div text-align="centre" class="margin-form">
-    <h2>Welcome Influencer {{ this.idu }}</h2>
-    <h3>Active Campaigns</h3>
-    <ul v-if="camp.length > 0"> 
-    <h4 v-for="c in camp" :key="c.id">
+    <div v-if="$store.state.checkl && $store.state.checkinf">
+        <Navbar />
+        <!-- change navbar -->
+        <ul v-if="data.length > 0"> 
+    <h4 v-for="c in data" :key="c.id">
         Name: {{ c.ad_name }}­ ­­­ ­ {{   }} Sponsor_id:  {{ c.Sponser }} ­ ­­­ ­ Campaign_id: {{ c.Campaign_id }}
     <br>
     </h4>
   </ul>
   <h4 v-else>No Active Campaigns available Yet</h4>
   <br>
-  <h3>Requests</h3>
-    <ul v-if="req.length > 0"> 
-    <h4 v-for="r in req" :key="r.id">
-        Name: {{ r.name }}    <br>
-        Request: {{ r.req }}<br>
-        Campaign: {{ r.camp }} <br>
-        <button class="btn btn-primary" @click="this.accept(r.id)">Accept</button>
-        <button class="btn btn-primary" @click="this.negotiate(r.id)">Negotiate</button>
-        <button class="btn btn-primary" @click="this.reject(r.id)">Reject</button>
-      </h4>
-  </ul>
-  <h4 v-else>No Request available Yet</h4>
-</div>
-</div>
-<div v-else>
-{{ this.login() }}
-</div>
-</template> 
+    </div>
+</template>
 
 <script>
 import axios from 'axios';
 import Navbar from './Navbar.vue';
 export default {
-  name: "Influencer",
-  components:{
-    Navbar,
-  },
-  data(){
-      return{
-      camp: [],
-      req:[],
-      idu:0,
-      }
-  },
-  methods: {
-      async checklogin(){
-          let token = localStorage.getItem("token")
-          const response = await axios.get("/check_login", {
+    name:"Find_spn",
+    components:{
+        Navbar,
+    },
+data(){
+    return{
+data: [],
+    }
+},
+methods:{
+    async checklogin(){
+        let token=localStorage.getItem("token");
+        const response = await axios.get("/check_login", {
               headers: {
                   Authorization: "Bearer " + token
               }}
@@ -80,53 +60,32 @@ export default {
           this.$router.push('/')
           }
       },
-      async Inf(){
+      async funct(){
         let token = localStorage.getItem("token")
-        const response = await axios.post("/Influencer", {
-                id: this.$route.params.id,
-              },
-              {
+          const response = await axios.get("/find_spn", {
               headers: {
                   Authorization: "Bearer " + token
               }}
           )
-          this.camp=response.data.camp;
-          this.req=response.data.req;
-      },
-      async accept(id){
-        let token=localStorage.getItem("token")
-        const resp=await axios.post("/accept_req",{
-          id:id,
-        },{
-          headers:{
-            Authorization:"Bearer"+token
-          }
-        })
-      },
-      async reject(id){
-        let token=localStorage.getItem("token")
-        const resp=await axios.post("/reject_req",{
-          id:id,
-        },{
-          headers:{
-            Authorization:"Bearer"+token
-          }
-        })
+          this.data=response.data;
+          console.log(this.data)
       },
       async login(){
         this.$router.push("/")
       }
-  },
-  mounted(){
-      this.Inf();
+},
+mounted(){
+      this.funct();
   },
   created(){
       this.checklogin(),
       this.checkinf(),
       this.idu= this.$route.params.id;
   }
-};
+
+}
 </script>
+
 <style scoped>
 .margin-form {
 margin: 40px;

@@ -11,7 +11,7 @@ import Update_camp from "./components/Update_camp.vue"
 import Update_ad from "./components/Update_ad.vue"
 import Find_inf from "./components/Find_inf.vue"
 import Req_inf from "./components/Req_inf.vue"
-
+import Find_spn from "./components/Find_spn.vue"
 const routes=[
     {
         path:'/',
@@ -70,6 +70,10 @@ const routes=[
         path:"/req_inf/:sp_id/:inf_id",
         component:Req_inf,
         name:"Req_inf"
+    },
+    {
+        path:"/find_spn/:id",
+        component:Find_spn
     },
     
 ]

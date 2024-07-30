@@ -98,6 +98,7 @@ export default {
         inf_id:this.inf_id,
         camp_id:this.camp_id,
         ad_id:this.ad_id,
+        sp_id:this.sp_id,
       })
       if(res.data.message=="success"){
         this.$router.push({name:"Sponsor",params:{id:this.sp_id}});
