@@ -14,7 +14,6 @@
 <script>
 import axios from 'axios';
 import Navbar from './Navbar.vue';
-// import { mapState } from 'vuex';
 
 export default {
   name: "Admin",
@@ -26,9 +25,6 @@ export default {
       log: 0,
     };
   },
-  // computed: {
-  //   ...mapState(['checkl', 'checkadmin'])
-  // },
     methods: {
       async checklogin(){
           let token = localStorage.getItem("token")

@@ -74,7 +74,7 @@ methods:{
       },
       async request(id){
         let token = localStorage.getItem("token")
-          const response = await axios.post("/find_spn", {
+          const response = await axios.post("/request_ad", {
             id:id,
             idu:this.idu,
           },{
@@ -85,7 +85,7 @@ methods:{
       },
       async search(){
           let token = localStorage.getItem("token")
-          const response = await axios.post("find_inf", {
+          const response = await axios.post("find_spn", {
             keyword: this.keyword,
             id:this.idu,
                 },
@@ -94,7 +94,7 @@ methods:{
                     Authorization: "Bearer " + token
                 }}
             )
-            this.inf=response.data.inf
+            this.data=response.data
         },
         async login(){
           console.log("login required")

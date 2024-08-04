@@ -126,7 +126,6 @@ def login():
 #         return jsonify({'error': 'Username already exists'}), 400
 #     if any(u.email == em for u in users):
 #         return jsonify({'error': 'Email already exists'}), 400
-  
 #     u=User(email=em,password=generate_password_hash(password),name=username,role_id=2,approved=False)
 #     db.session.add(u)
 #     db.session.commit()
@@ -352,6 +351,7 @@ def Find_inf():
     for i in inf:
         inf_add=Inf_additional.query.filter_by(inf_id=i.id).first()
         l.append({"name":i.name,"Rating":inf_add.rating,"platform":inf_add.platform,"id":i.id})
+    print(l)
     return {"inf":l}
 
 @app.route("/influencers", methods=["GET"])
@@ -374,7 +374,6 @@ def camp_fetch():
             l.append({"name": i.name,"id": i.id,})
     else:
         return jsonify({"error": "User not found"}), 404
-    print(l)
     return jsonify(l)
 
 @app.route("/ads", methods=["GET"])

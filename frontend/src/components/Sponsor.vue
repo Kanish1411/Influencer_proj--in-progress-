@@ -7,14 +7,16 @@
       <ul v-if="camp.length > 0">
         <h4 v-for="c in camp" :key="c.camp_id">
           <h3>
-            Name: {{ c.Camp_name }} Visibility: {{ c.Camp_vis }}
+            <br>
+            {{ c.Camp_name }} Visibility: {{ c.Camp_vis }}
           </h3>
           <h5 v-if="c.ads.length > 0">
               <h5 v-for="a in c.ads" :key="a.Ad_id">
-                Ad Name: {{ a.Name }} requirements: {{ a.Req }} Worker: {{ a.Worker }}
+                <br>Ad Name: {{ a.Name }} <br>requirements: {{ a.Req }} <br>Worker: {{ a.Worker }}<br> <br>
                 <button class="btn btn-primary" @click="this.$router.push({ name: 'Update_ad', params: { id: a.Ad_id,sp_id:idu } })">Update</button>{{  }}
                 <button class="btn btn-danger" @click="this.del_ad(a.Ad_id)">Delete</button>
               </h5>
+              <br>
             <button class="btn btn-primary" @click="this.$router.push({ name: 'Addad', params: { id: c.camp_id,sp_id:idu } })">Add Ad</button>  {{  }}
             <button class="btn btn-primary" @click="this.$router.push({ name: 'Update_camp', params: { id: c.camp_id,sp_id:idu } })">Update Campaign</button>{{  }}
             <button class="btn btn-danger" @click="this.del_camp(c.camp_id)">Delete Campaign</button>
