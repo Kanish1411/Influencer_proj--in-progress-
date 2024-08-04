@@ -1,14 +1,22 @@
 <template>
     <div v-if="$store.state.checkl && $store.state.checkinf">
-        <Navbar />
-        <!-- change navbar -->
+        <Navbar showinfHomeLink/>
+        <h1>Find Ads</h1>
+        <form  @submit.prevent="search">
+    <input class="form-control" type="text" v-model="keyword" >
+    <button class="btn btn-primary">Search</button>
+    </form>
         <ul v-if="data.length > 0"> 
     <h4 v-for="c in data" :key="c.id">
-        Name: {{ c.ad_name }}­ ­­­ ­ {{   }} Sponsor_id:  {{ c.Sponser }} ­ ­­­ ­ Campaign_id: {{ c.Campaign_id }}
+        Name: {{ c.ad_name }}­ ­­­ ­ {{   }} <br>
+        Campaign:  {{ c.camp_name }} ­ ­­­ ­ <br>
+        Task: {{ c.task }} <br>
+        Price: {{ c.price }}<br>
+        <button class="btn btn-primary" @click="this.request(c.id)">Request</button>
     <br>
     </h4>
   </ul>
-  <h4 v-else>No Active Campaigns available Yet</h4>
+  
   <br>
     </div>
 </template>
@@ -23,7 +31,8 @@ export default {
     },
 data(){
     return{
-data: [],
+    data: [],
+    idu:0,
     }
 },
 methods:{
@@ -60,27 +69,47 @@ methods:{
           this.$router.push('/')
           }
       },
-      async funct(){
+      async login(){
+        this.$router.push("/")
+      },
+      async request(id){
         let token = localStorage.getItem("token")
-          const response = await axios.get("/find_spn", {
+          const response = await axios.post("/find_spn", {
+            id:id,
+            idu:this.idu,
+          },{
               headers: {
                   Authorization: "Bearer " + token
               }}
           )
-          this.data=response.data;
-          console.log(this.data)
       },
-      async login(){
-        this.$router.push("/")
-      }
+      async search(){
+          let token = localStorage.getItem("token")
+          const response = await axios.post("find_inf", {
+            keyword: this.keyword,
+            id:this.idu,
+                },
+                {
+                headers: {
+                    Authorization: "Bearer " + token
+                }}
+            )
+            this.inf=response.data.inf
+        },
+        async login(){
+          console.log("login required")
+          this.$router.push("/")
+        }
+    
 },
 mounted(){
-      this.funct();
+      this.search();
   },
   created(){
       this.checklogin(),
       this.checkinf(),
       this.idu= this.$route.params.id;
+      console.log(this.idu);
   }
 
 }

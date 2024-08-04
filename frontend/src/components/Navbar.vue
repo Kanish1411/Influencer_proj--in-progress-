@@ -11,7 +11,7 @@
         <router-link to="/" class="nav-link">Home</router-link>
       </li>
       <li class="nav-item active"  v-if="showinfHomeLink">
-        <router-link to="`/Influencer/${id}`" class="nav-link">Dashboard</router-link>
+        <router-link :to="{ name: 'Influencer', params: { id: this.id } }" class="nav-link">Dashboard</router-link>
       </li>
       <li class="nav-item active"  v-if="showadHomeLink">
         <router-link to="/admin" class="nav-link">Dashboard</router-link>
@@ -42,9 +42,6 @@
       </li>
       <li class="nav-item active"  v-if="showReqtab">
         <router-link :to="`/req/${id}`" class="nav-link">Request</router-link>
-      </li>
-      <li class="nav-item active"  v-if="showDashman">
-        <router-link :to="`/manager/${id}`" class="nav-link">Dashboard</router-link>
       </li>
       <li class="nav-item active"  v-if="showFindinf">
         <router-link :to="`/find_inf/${id}`" class="nav-link">Find Influencers</router-link>

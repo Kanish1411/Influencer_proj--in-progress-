@@ -186,7 +186,7 @@ def check_inf():
 
 @app.route("/check_spn", methods=["GET"])
 @jwt_required()
-def check_spn():
+def check_spn(): 
     print("spn works fine here")
     token = request.headers.get('Authorization')
     token = token.split(" ")[1]
@@ -250,9 +250,10 @@ def Sponsor():
         add=[]
     req=[]
     r=Request.query.filter_by(req_id=id).all()
-    print(r)
     for i in r:
-        req.append({"req_id":i.id})
+        if i.accepted==False:
+            a=Ad.query.filter_by(id=i.ad_id).first()
+            req.append({"req_id":i.id,"ad_name":a.name})
     print(camp,req)
     return {"camp":camp,"req":req}
 
@@ -286,7 +287,6 @@ def add_camp():
 def Update_camp():
     v=request.get_json()
     c=Campaign.query.filter_by(id=v.get("id")).first()
-    print(c)
     if c:
         c.name=v.get("camp_name")
         c.budget=v.get("camp_bud")
@@ -422,8 +422,8 @@ def request_inf():
 def accept_req():
     v=request.get_json()
     id=v.get("id")
+    print(id)
     r=Request.query.filter_by(id=id).first()
-    print(r)
     r.accepted=True
     c=Campaign.query.filter_by(id=r.camp_id).first()
     w=Work(sp_id=c.sp_id,inf_id=r.req_id,ad_id=r.ad_id,state="Accepted")
@@ -436,12 +436,15 @@ def reject_req():
     v=request.get_json()
     id=v.get("id")
     r=Request.query.filter_by(id=id).first()
-    db.session.delete(r)
+    if r:
+        db.session.delete(r)
     db.session.commit()
     return jsonify({"msg":"success"}) 
 
-@app.route("/find_spn", methods=["GET"])
+@app.route("/find_spn", methods=["POST"])
 def sp_fetch():
+    v=request.get_json()
+    idu=v.get("id")
     camp=Campaign.query.all()
     l=[]
     for i in camp:
@@ -449,12 +452,29 @@ def sp_fetch():
         if ad:
             for j in ad:
                 w=Work.query.filter_by(ad_id=j.id).first()
+                r=Request.query.filter_by(ad_id=j.id,req_from_id=idu).first()
+                if r:
+                    continue
                 if w:
                     continue
-                if w==None and i.status=="public":
-                    l.append({"ad name":j.name,"camp name":i.name,"task":j.req,"price":j.price})
-    print(l)
+                if w==None and  i.status=="public":
+                    l.append({"id":j.id,"ad_name":j.name,"camp_name":i.name,"task":j.req,"price":j.price})
     return jsonify(l)
+
+@app.route("/request_ad",methods=["POST"])
+def request_ad():
+    v=request.get_json()
+    aid=v.get("id")
+    idu=v.get("idu")
+    camp=Campaign.query.filter_by(id=(Ad.query.filter_by(id=aid).first().camp_id)).first()
+    r1=Request.query.filter_by(ad_id=aid,req_from_id=idu).first()
+    if r1:
+        return jsonify("error")
+    r=Request(req_id=camp.sp_id,req_from_id=idu,camp_id=camp.id,ad_id=aid,accepted=False)
+    db.session.add(r)
+    db.session.commit()
+    return jsonify("Success")
+
 
 if __name__ == "__main__":
     with app.app_context():

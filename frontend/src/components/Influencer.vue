@@ -18,8 +18,8 @@
         Name: {{ r.name }}    <br>
         Request: {{ r.req }}<br>
         Campaign: {{ r.camp }} <br>
-        <button class="btn btn-primary" @click="this.accept(r.id)">Accept</button>
-        <button class="btn btn-primary" @click="this.negotiate(r.id)">Negotiate</button>
+        <button class="btn btn-primary" @click="this.accept(r.id)">Accept</button>{{  }}
+        <button class="btn btn-primary" @click="this.negotiate(r.id)">Negotiate</button>{{  }}
         <button class="btn btn-primary" @click="this.reject(r.id)">Reject</button>
       </h4>
   </ul>
@@ -112,6 +112,7 @@ export default {
             Authorization:"Bearer"+token
           }
         })
+        this.Inf();
       },
       async login(){
         this.$router.push("/")

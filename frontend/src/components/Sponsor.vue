@@ -30,9 +30,11 @@
       <br>
       <h3>Requests</h3>
       <ul v-if="req.length > 0">
-        <li v-for="r in req" :key="r.req_id">
-          Request ID: {{ r.req_id }}
-        </li>
+        <h4 v-for="r in req" :key="r.req_id">
+          Request ID: {{ r.req_id }}<br>
+          Ad: {{ r.ad_name }}<br>
+          <button class="btn btn-primary" @click="this.accept(r.req_id)">Accept</button>  {{  }}
+        </h4>
       </ul>
       <h4 v-else>No Requests available Yet</h4>
     </div>
@@ -110,6 +112,16 @@ export default {
       catch(error){
         console.error("Error fetching DATA:", error);
       }
+    },
+    async accept(id){
+      let token=localStorage.getItem("token");
+      const r=await axios.post("/accept_req",{
+        id:id,
+      },{
+        headers:{
+          Authorization:"Bearer"+token,
+        }
+      })
     },
     async del_camp(id){
       try {
