@@ -110,9 +110,30 @@ export default {
 
       async login(){
         this.$router.push("/")
-      }
-  },
-  mounted(){
+      },
+    //   async fetchCampaign() {
+    //     let token = localStorage.getItem("token");
+    //     try {
+    //         const response = await axios.get('/camp_fetch', {
+    //             params: { id: this.id }
+    //         },{
+    //         headers: {
+    //             Authorization: "Bearer " + token
+    //         }
+    //         });
+    //         if (response.data) {
+    //         const campaign = response.data;
+    //         this.camp_name = campaign.name;
+    //         this.camp_det = campaign.details;
+    //         this.camp_bud = campaign.budget;
+    //         this.camp_vis = campaign.visibility;
+    //         } else {
+    //         console.error("Failed to fetch campaign data");
+    //         }
+    //     } catch (error) {
+    //         console.error("Error fetching campaign:", error);
+    //     }
+    // },
   },
   created(){
       this.checklogin(),
@@ -120,6 +141,7 @@ export default {
       this.id= this.$route.params.id;
       this.sp_id=this.$route.params.sp_id;
       console.log(this.idu);
+      this.fetchCampaign();
   }
 };
 </script>

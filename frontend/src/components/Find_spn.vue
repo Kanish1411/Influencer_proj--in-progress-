@@ -12,13 +12,13 @@
         Campaign:  {{ c.camp_name }} ­ ­­­ ­ <br>
         Task: {{ c.task }} <br>
         Price: {{ c.price }}<br>
+        Rating: {{ c.Rating }}
         <button class="btn btn-primary" @click="this.request(c.id)">Request</button>
     <br>
     </h4>
   </ul> 
   </div>
 </template>
-
 <script>
 import axios from 'axios';
 import Navbar from './Navbar.vue';
@@ -76,7 +76,7 @@ methods:{
           const response = await axios.post("/request_ad", {
             id:id,
             idu:this.idu,
-            keyword:this.key,
+           
           },{
               headers: {
                   Authorization: "Bearer " + token
@@ -95,6 +95,8 @@ methods:{
                 }}
             )
             this.data=response.data
+            console.log(this.data);
+            
         },
         async login(){
           console.log("login required")

@@ -125,9 +125,10 @@ def register():
         db.session.commit()
     if r=="Sponsor":
         u=User(email=em,pwd=generate_password_hash(password),name=username,role_id=2,approved=False)
-        spn=Additional(user_id=u.id,rating=5,platform=additional)
-        db.session.add(spn)
         db.session.add(u)
+        db.session.commit()
+        spn=Additional(user_id=u.id,rating=5,platform=additional)
+        db.session.add(spn) 
         db.session.commit()
         return jsonify({'message': 'Registration successful Wait for Admin Approval'}), 200
     return jsonify({'message': 'Registration successful'}), 200
@@ -225,9 +226,10 @@ def Sponsor():
     v=request.get_json()
     id=v.get("id")
     camp=[]
-    add=[]
+    
     u=Campaign.query.filter_by(sp_id=id).all()
     for i in u:
+        add=[]
         a=Ad.query.filter_by(camp_id=i.id).all()
         for j in a:
             var="Unassigned"
@@ -248,7 +250,7 @@ def Sponsor():
     return {"camp":camp,"req":req}
 
 @app.route("/Sponsor_req",methods=["GET"])
-@auth_role("Sponsor")
+@auth_role("Admin")
 def sponsor_req():
     u=User.query.filter_by(approved=False).all()
     l=[]
@@ -347,11 +349,10 @@ def Find_inf():
     if key=="" or key==None:
         inf=User.query.filter_by(role_id=3).all()
     else:
-        # if "rating" in key:
         inf=User.query.filter_by(role_id=3,name=key).all()
     l=[]
     for i in inf:
-        inf_add=Additional.query.filter_by(inf_id=i.id).first()
+        inf_add=Additional.query.filter_by(user_id=i.id).first()
         l.append({"name":i.name,"Rating":inf_add.rating,"platform":inf_add.platform,"id":i.id})
     return {"inf":l}
 
@@ -367,14 +368,16 @@ def inf_fetch():
 @app.route("/camp_fetch", methods=["GET"])
 def camp_fetch():
     user_id = request.args.get('id')
-    camp = Campaign.query.filter_by(sp_id=user_id).all()
+    print(user_id)
+    camp = Campaign.query.filter_by(id=user_id).all()
     print(camp)
     l=[]
     if camp:
         for i in camp:
-            l.append({"name": i.name,"id": i.id,})
+            l.append({"name": i.name,"id": i.id,"details":i.details,"budget":i.budget,"visibility":i.status})
     else:
         return jsonify({"error": "User not found"}), 404
+    print(l)
     return jsonify(l)
 
 @app.route("/ad_fetch", methods=["GET"])
@@ -446,24 +449,26 @@ def sp_fetch():
     v=request.get_json()
     idu=v.get("id")
     key=v.get("keyword")
+    print(idu)
     camp=[]
-    if key!="" or key!=None:
+    if key!="" and key!=None:
         key = f"%{key}%"
-        camp=Campaign.query.filter_by(name=key).all()
+        camp=Campaign.query.filter(Campaign.name.like(key)).all()
     else:
         camp=Campaign.query.all()
     l=[]
     for i in camp:
-        ad=Ad.query.filter(Campaign.name.like(key)).all()
+        ad=Ad.query.filter_by(camp_id=i.id).all()
         if ad:
             for j in ad:
                 w=Work.query.filter_by(ad_id=j.id).first()
                 r=Request.query.filter_by(ad_id=j.id,req_from_id=idu).first()
-                add=Additional.query.filter_by(user_id=i.id).first()
+                add=Additional.query.filter_by(user_id=i.sp_id).first()
                 if r or w:
                     continue
                 if w==None and  i.status=="public":
-                    l.append({"id":j.id,"ad_name":j.name,"camp_name":i.name,"task":j.req,"price":j.price,"rating":add.rating})
+                    l.append({"id":j.id,"ad_name":j.name,"camp_name":i.name,"task":j.req,"price":j.price,"Rating":add.rating})
+    print(l)
     return jsonify(l)
 
 @app.route("/request_ad",methods=["POST"])
