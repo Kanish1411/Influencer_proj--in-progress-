@@ -1,4 +1,3 @@
-
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
 from flask import Flask, make_response, jsonify, request
@@ -25,6 +24,9 @@ class User(db.Model):
     pwd=db.Column(db.String(20),nullable=False)
     approved=db.Column(db.Boolean,default=True)
     role_id = db.Column(db.Integer, db.ForeignKey('role.id'), nullable=False)
+    def has_role(self, role):
+        user_role = Role.query.filter_by(id=self.role_id).first()
+        return user_role is not None and user_role.name == role
 
 class Campaign(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -56,9 +58,9 @@ class Request(db.Model):
     ad_id=db.Column(db.Integer, db.ForeignKey('ad.id'), nullable=False)
     accepted=db.Column(db.Boolean, nullable=False)
 
-class Inf_additional(db.Model):
+class Additional(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    inf_id=db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id=db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     rating=db.Column(db.Integer, nullable=False)
     platform=db.Column(db.String(10), nullable=False)
 
@@ -68,8 +70,11 @@ def auth_role(role):
         @wraps(fn)
         @jwt_required()
         def decorator(*args, **kwargs):
-            current_user = User.query.get(get_jwt_identity())
+            user_id = get_jwt_identity()
+            current_user = db.session.get(User, user_id)
             roles = role if isinstance(role, list) else [role]
+            if not current_user:
+                return make_response({"msg": "User not found"}, 404)
             if all(not current_user.has_role(r) for r in roles):
                 return make_response({"msg": "missing roles"}, 403)
             return fn(*args, **kwargs)
@@ -85,51 +90,18 @@ def login():
     for u in users:
         if u.name == username and check_password_hash(u.pwd,password):
             if u.role_id==1:
-                access_token = create_access_token(identity=username, additional_claims={"role": "admin"})
+                access_token = create_access_token(identity=u.id, additional_claims={"role": "admin"})
                 return jsonify({'message': 'Admin login successful', 'access_token': access_token}), 200
             elif u.role_id == 2:
                     if u.approved:
-                        access_token = create_access_token(identity=username, additional_claims={"role": "Sponsor"})
+                        access_token = create_access_token(identity=u.id, additional_claims={"role": "Sponsor"})
                         return jsonify({'message': 'Sponsor login successful', 'access_token': access_token,"id":u.id}), 200
                     else:
                         return jsonify({'message': 'Please Wait for Admin Approval'}),200
             elif u.role_id==3:
-               access_token = create_access_token(identity=username, additional_claims={"role": "Influencer"})
+               access_token = create_access_token(identity=u.id, additional_claims={"role": "Influencer"})
                return jsonify({'message': 'Influencer login successful', 'access_token': access_token,"id":u.id}), 200
     return jsonify({'error': 'Invalid credentials'}), 401
-
-# @app.route('/inf_register', methods=['POST'])
-# def Influencer_register():
-#     data = request.get_json()
-#     username = data.get('username')
-#     password = data.get('password')
-#     em = data.get('email')
-#     p=data.get('platform')
-#     users=User.query.filter_by(rid=Role.query.filter_by(name="Influencer").first().id)
-#     if any(u.name == username for u in users):
-#         return jsonify({'error': 'Username already exists'}), 400
-#     if any(u.email == em for u in users):
-#         return jsonify({'error': 'Email already exists'}), 400
-#     u=User(email=em,password=generate_password_hash(password),name=username,role_id=3)
-#     db.session.add(u)
-#     db.session.commit()
-#     return jsonify({'message': 'Registration successful'}), 200
-# @app.route('/spn_register', methods=['POST'])
-# def sponser_register():
-#     data = request.get_json()
-#     username = data.get('username')
-#     password = data.get('password')
-#     em = data.get('email')
-#     i=data.get('industry')
-#     users=User.query.filter_by(rid=Role.query.filter_by(name="Sponsor").first().id)
-#     if any(u.name == username for u in users):
-#         return jsonify({'error': 'Username already exists'}), 400
-#     if any(u.email == em for u in users):
-#         return jsonify({'error': 'Email already exists'}), 400
-#     u=User(email=em,password=generate_password_hash(password),name=username,role_id=2,approved=False)
-#     db.session.add(u)
-#     db.session.commit()
-#     return jsonify({'message': 'Registration successful'}), 200
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -148,16 +120,35 @@ def register():
         u=User(email=em,pwd=generate_password_hash(password),name=username,role_id=3)
         db.session.add(u)
         db.session.commit()
-        inf=Inf_additional(inf_id=u.id,rating=5,platform=additional)
+        inf=Additional(user_id=u.id,rating=5,platform=additional)
         db.session.add(inf)
         db.session.commit()
     if r=="Sponsor":
         u=User(email=em,pwd=generate_password_hash(password),name=username,role_id=2,approved=False)
+        spn=Additional(user_id=u.id,rating=5,platform=additional)
+        db.session.add(spn)
         db.session.add(u)
         db.session.commit()
         return jsonify({'message': 'Registration successful Wait for Admin Approval'}), 200
     return jsonify({'message': 'Registration successful'}), 200
 
+@app.route("/admin",methods=["GET"])
+@auth_role("Admin")
+def admin():
+    camp=[]
+    u=Campaign.query.all()
+    for i in u:
+        add=[]
+        a=Ad.query.filter_by(camp_id=i.id).all()
+        for j in a:
+            var="Unassigned"
+            w=Work.query.filter_by(ad_id=j.id).first()
+            if w:
+                inf=w.inf_id
+                var=User.query.filter_by(id=inf).first().name
+            add.append({"Ad_id":j.id,"Name":j.name,"Req":j.req,"Worker":var})
+        camp.append({"camp_id":i.id,"Camp_name":i.name,"Camp_vis":i.status,"ads":add})
+    return {"camp":camp}
 
 @app.route('/check_login', methods=['GET'])
 @jwt_required()
@@ -165,7 +156,7 @@ def check_login():
     print("login works fine here")
     token = request.headers.get('Authorization')
     token = token.split(" ")[1]
-    u=User.query.filter_by(name=get_jwt_identity()).all()
+    u=User.query.filter_by(id=get_jwt_identity()).all()
     for i in u:
         if i.role_id in [3,2,1]:
             return {"message":"success"}
@@ -177,7 +168,7 @@ def check_inf():
     print("inf works fine here")
     token = request.headers.get('Authorization')
     token = token.split(" ")[1]
-    u=User.query.filter_by(name=get_jwt_identity()).all()
+    u=User.query.filter_by(id=get_jwt_identity()).all()
     for i in u:
         if i.role_id ==3:
             return {"message":"success"}
@@ -189,7 +180,7 @@ def check_spn():
     print("spn works fine here")
     token = request.headers.get('Authorization')
     token = token.split(" ")[1]
-    u=User.query.filter_by(name=get_jwt_identity()).all()
+    u=User.query.filter_by(id=get_jwt_identity()).all()
     for i in u:
         if i.role_id ==2:
             return {"message":"success"}
@@ -201,14 +192,14 @@ def check_ad():
     print("ad works fine here")
     token = request.headers.get('Authorization')
     token = token.split(" ")[1]
-    u=User.query.filter_by(name=get_jwt_identity()).all()
+    u=User.query.filter_by(id=get_jwt_identity()).all()
     for i in u:
         if i.role_id ==1:
             return {"message":"success"}
     return {"message" : "Fail"}
 
 @app.route("/Influencer", methods=['GET','POST'])
-@jwt_required()
+@auth_role("Influencer")
 def Influencer():
     v=request.get_json()
     id=v.get("id")
@@ -229,7 +220,7 @@ def Influencer():
     return {"camp":active,"req":req}
 
 @app.route("/Sponsor", methods=["GET",'POST'])
-@jwt_required()
+@auth_role("Sponsor")
 def Sponsor():
     v=request.get_json()
     id=v.get("id")
@@ -246,7 +237,7 @@ def Sponsor():
                 var=User.query.filter_by(id=inf).first().name
             add.append({"Ad_id":j.id,"Name":j.name,"Req":j.req,"Worker":var})
         camp.append({"camp_id":i.id,"Camp_name":i.name,"Camp_vis":i.status,"ads":add})
-        add=[]
+        add
     req=[]
     r=Request.query.filter_by(req_id=id).all()
     for i in r:
@@ -257,6 +248,7 @@ def Sponsor():
     return {"camp":camp,"req":req}
 
 @app.route("/Sponsor_req",methods=["GET"])
+@auth_role("Sponsor")
 def sponsor_req():
     u=User.query.filter_by(approved=False).all()
     l=[]
@@ -273,6 +265,7 @@ def Accept():
     return {"message":"success"}
 
 @app.route("/add_camp",methods=["GET","POST"]) 
+@auth_role("Sponsor")
 def add_camp():
     v=request.get_json()
     c=Campaign(name=v.get("camp_name"),budget=v.get("camp_bud"),
@@ -282,7 +275,8 @@ def add_camp():
     db.session.commit()
     return {"message":"success"}
 
-@app.route("/update_camp",methods=["GET","POST"]) 
+@app.route("/update_camp",methods=["GET","POST"])
+@auth_role("Sponsor")
 def Update_camp():
     v=request.get_json()
     c=Campaign.query.filter_by(id=v.get("id")).first()
@@ -296,6 +290,7 @@ def Update_camp():
     return {"message":"Failed"}
 
 @app.route("/delete_camp",methods=['GET','POST'])
+@auth_role("Sponsor")
 def delete_camp():
     v = request.get_json()
     c=Campaign.query.filter_by(id=v.get("id")).first()
@@ -307,6 +302,7 @@ def delete_camp():
     return {"message":"success"}
 
 @app.route("/add_ad",methods=["GET","POST"]) 
+@auth_role("Sponsor")
 def add_ad():
     v=request.get_json()
     a=Ad(name=v.get("ad_name"),price=v.get("ad_bud"),
@@ -316,6 +312,7 @@ def add_ad():
     return {"message":"success"}
 
 @app.route("/update_ad",methods=["GET","POST"]) 
+@auth_role("Sponsor")
 def Update_ad():
     v=request.get_json()
     a=Ad.query.filter_by(id=v.get("id")).first()
@@ -329,6 +326,7 @@ def Update_ad():
     return {"message":"Failed"}
 
 @app.route("/delete_ad",methods=['GET','POST'])
+@auth_role("Sponsor")
 def delete_ad():
     v = request.get_json()
     a=Ad.query.filter_by(id=v.get("id")).first()
@@ -336,7 +334,11 @@ def delete_ad():
     db.session.commit()
     return {"message":"success"}
 
+##
+##
+## Searching feature 
 @app.route("/find_inf",methods=['GET','POST'])
+@auth_role("Sponsor")
 def Find_inf():
     v = request.get_json()
     key=v.get("keyword")
@@ -349,12 +351,11 @@ def Find_inf():
         inf=User.query.filter_by(role_id=3,name=key).all()
     l=[]
     for i in inf:
-        inf_add=Inf_additional.query.filter_by(inf_id=i.id).first()
+        inf_add=Additional.query.filter_by(inf_id=i.id).first()
         l.append({"name":i.name,"Rating":inf_add.rating,"platform":inf_add.platform,"id":i.id})
-    print(l)
     return {"inf":l}
 
-@app.route("/influencers", methods=["GET"])
+@app.route("/inf_details", methods=["GET"])
 def inf_fetch():
     user_id = request.args.get('id')
     user = User.query.filter_by(id=user_id).first()
@@ -363,7 +364,7 @@ def inf_fetch():
     else:
         return jsonify({"error": "User not found"}), 404
 
-@app.route("/campaigns", methods=["GET"])
+@app.route("/camp_fetch", methods=["GET"])
 def camp_fetch():
     user_id = request.args.get('id')
     camp = Campaign.query.filter_by(sp_id=user_id).all()
@@ -376,7 +377,7 @@ def camp_fetch():
         return jsonify({"error": "User not found"}), 404
     return jsonify(l)
 
-@app.route("/ads", methods=["GET"])
+@app.route("/ad_fetch", methods=["GET"])
 def ads_fetch():
     id = request.args.get('id')
     ad = Ad.query.filter_by(camp_id=id).all()
@@ -387,8 +388,7 @@ def ads_fetch():
                 if v==None:
                     l.append({"name": i.name,"id": i.id})
                 elif v.accepted==False:
-                    l.append({"name": i.name,"id": i.id,"inf_id":v.req_id})
-                
+                    l.append({"name": i.name,"id": i.id,"inf_id":v.req_id})     
     else:
         return jsonify({"error": "User not found"}), 404
     return jsonify(l)
@@ -441,23 +441,29 @@ def reject_req():
     return jsonify({"msg":"success"}) 
 
 @app.route("/find_spn", methods=["POST"])
+@auth_role("Influencer")
 def sp_fetch():
     v=request.get_json()
     idu=v.get("id")
-    camp=Campaign.query.all()
+    key=v.get("keyword")
+    camp=[]
+    if key!="" or key!=None:
+        key = f"%{key}%"
+        camp=Campaign.query.filter_by(name=key).all()
+    else:
+        camp=Campaign.query.all()
     l=[]
     for i in camp:
-        ad=Ad.query.filter_by(camp_id=i.id).all()
+        ad=Ad.query.filter(Campaign.name.like(key)).all()
         if ad:
             for j in ad:
                 w=Work.query.filter_by(ad_id=j.id).first()
                 r=Request.query.filter_by(ad_id=j.id,req_from_id=idu).first()
-                if r:
-                    continue
-                if w:
+                add=Additional.query.filter_by(user_id=i.id).first()
+                if r or w:
                     continue
                 if w==None and  i.status=="public":
-                    l.append({"id":j.id,"ad_name":j.name,"camp_name":i.name,"task":j.req,"price":j.price})
+                    l.append({"id":j.id,"ad_name":j.name,"camp_name":i.name,"task":j.req,"price":j.price,"rating":add.rating})
     return jsonify(l)
 
 @app.route("/request_ad",methods=["POST"])
@@ -473,7 +479,6 @@ def request_ad():
     db.session.add(r)
     db.session.commit()
     return jsonify("Success")
-
 
 if __name__ == "__main__":
     with app.app_context():

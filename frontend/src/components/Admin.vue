@@ -3,6 +3,20 @@
     <Navbar showHomeLink  showReqLink />
     <div text-align="centre" class="margin-form">
       <h1>Admin page</h1>
+      <ul v-if="camp.length > 0">
+        <h4 v-for="c in camp" :key="c.camp_id">
+          <h3>
+            <br>
+            {{ c.Camp_name }} Visibility: {{ c.Camp_vis }}
+          </h3>
+          <h5 v-if="c.ads.length > 0">
+              <h5 v-for="a in c.ads" :key="a.Ad_id">
+                <br>Ad Name: {{ a.Name }} <br>requirements: {{ a.Req }} <br>Worker: {{ a.Worker }}<br> <br>
+              </h5>
+            <!-- <button class="btn btn-primary">Flag Campaign</button>  {{  }} -->
+          </h5>
+        </h4>
+      </ul>
     </div>
 </div>
 <div v-else>
@@ -23,6 +37,8 @@ export default {
   data() {
     return {
       log: 0,
+      camp:[],
+      ads:[],
     };
   },
     methods: {
@@ -59,6 +75,15 @@ export default {
             this.$router.push('/')
             }
         },
+        async admin(){
+          let token = localStorage.getItem("token")
+            const response = await axios.get("/admin",{
+                headers: {
+                    Authorization: "Bearer " + token
+                }}
+            )
+            this.camp=response.data.camp;
+        },
         async login(){
           console.log("login required")
           this.$router.push("/")
@@ -70,7 +95,7 @@ export default {
         }
     },
     mounted(){
-      this.logg()
+      this.admin()
     },
     created(){
         this.checklogin()

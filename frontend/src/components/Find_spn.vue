@@ -15,10 +15,8 @@
         <button class="btn btn-primary" @click="this.request(c.id)">Request</button>
     <br>
     </h4>
-  </ul>
-  
-  <br>
-    </div>
+  </ul> 
+  </div>
 </template>
 
 <script>
@@ -33,6 +31,7 @@ data(){
     return{
     data: [],
     idu:0,
+    keyword:"",
     }
 },
 methods:{
@@ -77,6 +76,7 @@ methods:{
           const response = await axios.post("/request_ad", {
             id:id,
             idu:this.idu,
+            keyword:this.key,
           },{
               headers: {
                   Authorization: "Bearer " + token
@@ -86,8 +86,8 @@ methods:{
       async search(){
           let token = localStorage.getItem("token")
           const response = await axios.post("find_spn", {
-            keyword: this.keyword,
             id:this.idu,
+            keyword: this.keyword,
                 },
                 {
                 headers: {

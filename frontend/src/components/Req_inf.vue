@@ -8,7 +8,7 @@
     <form @submit.prevent="request">
     <div>
       <label for="campaignSelect">Select Campaign:</label>
-      <select id="campaignSelect" v-model="camp_id" @change="fetchAds">
+      <select id="campaignSelect" v-model="camp_id" @change="fetch_ad">
         <option v-for="campaign in campaigns" :key="campaign.id" :value="campaign.id">
           {{ campaign.name }}
         </option>
@@ -92,7 +92,7 @@ export default {
           console.log(response)
           this.$router.push('/')
           }
-      },
+    },
     async request(){
       const res=await axios.post("/request_inf",{
         inf_id:this.inf_id,
@@ -112,9 +112,9 @@ export default {
         this.$router.push({name:"Sponsor",params:{id:this.sp_id}});
       }
     },
-  async fetchInfluencerDetails() {
+  async fetch_inf() {
     try {
-      const response = await axios.get(`/influencers`, {
+      const response = await axios.get('/inf_details', {
         params: { id: this.inf_id }
       });
       console.log('Influencer Details:', response.data);
@@ -123,9 +123,9 @@ export default {
       console.error('Error fetching influencer details:', error);
     }
   },
-  async fetchCampaigns() {
+  async fetch_camp() {
     try {
-      const response = await axios.get(`/campaigns`, {
+      const response = await axios.get(`/camp_fetch`, {
         params: { id: this.sp_id }
       });
       this.campaigns = response.data;
@@ -134,10 +134,10 @@ export default {
       console.error('Error fetching campaigns:', error);
     }
   },
-  async fetchAds() {
+  async fetch_ad() {
     if (this.camp_id) {
       try {
-        const response = await axios.get(`/ads`, {
+        const response = await axios.get(`/ad_fetch`, {
           params: { id: this.camp_id }
         });
         console.log('Ads:', response.data); 
@@ -147,7 +147,6 @@ export default {
       }
     }
   },
-  
   async login(){
         this.$router.push("/")
       }
@@ -157,8 +156,8 @@ export default {
     this.sp_id = this.$route.params.sp_id;
     this.inf_id = this.$route.params.inf_id;
     console.log(this.inf_id);
-    this.fetchInfluencerDetails();
-    this.fetchCampaigns();
+    this.fetch_inf();
+    this.fetch_camp();
   },
   created(){
       this.checklogin(),
