@@ -13,9 +13,11 @@
               <h5 v-for="a in c.ads" :key="a.Ad_id">
                 <br>Ad Name: {{ a.Name }} <br>requirements: {{ a.Req }} <br>Worker: {{ a.Worker }}<br> <br>
               </h5>
-            <!-- <button class="btn btn-primary">Flag Campaign</button>  {{  }} -->
           </h5>
         </h4>
+      </ul>
+      <ul v-else>
+        No Campaigns yet
       </ul>
     </div>
 </div>

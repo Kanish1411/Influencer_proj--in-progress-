@@ -4,8 +4,11 @@ from flask import Flask, make_response, jsonify, request
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity, get_current_user
 from werkzeug.security import generate_password_hash,check_password_hash
 from flask_cors import CORS
+from flask_caching import Cache
 
 app = Flask(__name__)
+cache=Cache(config={"CACHE_TYPE":"RedisCache","CACHE_REDIS_HOST":"127.0.0.1","CACHE_REDIS_PORT":6379})
+cache.init_app(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///C:/MAD/Proj1/backend/Database.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = 'qwertyuiop' 
@@ -134,6 +137,7 @@ def register():
     return jsonify({'message': 'Registration successful'}), 200
 
 @app.route("/admin",methods=["GET"])
+@cache.cached(timeout=1000)
 @auth_role("Admin")
 def admin():
     camp=[]
@@ -200,6 +204,7 @@ def check_ad():
     return {"message" : "Fail"}
 
 @app.route("/Influencer", methods=['GET','POST'])
+@cache.cached(timeout=1000)
 @auth_role("Influencer")
 def Influencer():
     v=request.get_json()
@@ -221,6 +226,7 @@ def Influencer():
     return {"camp":active,"req":req}
 
 @app.route("/Sponsor", methods=["GET",'POST'])
+@cache.cached(timeout=1000)
 @auth_role("Sponsor")
 def Sponsor():
     v=request.get_json()
@@ -336,9 +342,7 @@ def delete_ad():
     db.session.commit()
     return {"message":"success"}
 
-##
-##
-## Searching feature 
+
 @app.route("/find_inf",methods=['GET','POST'])
 @auth_role("Sponsor")
 def Find_inf():
@@ -468,7 +472,6 @@ def sp_fetch():
                     continue
                 if w==None and  i.status=="public":
                     l.append({"id":j.id,"ad_name":j.name,"camp_name":i.name,"task":j.req,"price":j.price,"Rating":add.rating})
-    print(l)
     return jsonify(l)
 
 @app.route("/request_ad",methods=["POST"])
