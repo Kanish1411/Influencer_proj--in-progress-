@@ -7,8 +7,8 @@ from flask_cors import CORS
 from flask_caching import Cache
 
 app = Flask(__name__)
-cache=Cache(config={"CACHE_TYPE":"RedisCache","CACHE_REDIS_HOST":"127.0.0.1","CACHE_REDIS_PORT":6379})
-cache.init_app(app)
+# cache=Cache(config={"CACHE_TYPE":"RedisCache","CACHE_REDIS_HOST":"127.0.0.1","CACHE_REDIS_PORT":6379})
+# cache.init_app(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///C:/MAD/Proj1/backend/Database.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = 'qwertyuiop' 
@@ -137,7 +137,6 @@ def register():
     return jsonify({'message': 'Registration successful'}), 200
 
 @app.route("/admin",methods=["GET"])
-@cache.cached(timeout=1000)
 @auth_role("Admin")
 def admin():
     camp=[]
@@ -204,7 +203,6 @@ def check_ad():
     return {"message" : "Fail"}
 
 @app.route("/Influencer", methods=['GET','POST'])
-@cache.cached(timeout=1000)
 @auth_role("Influencer")
 def Influencer():
     v=request.get_json()
@@ -226,7 +224,6 @@ def Influencer():
     return {"camp":active,"req":req}
 
 @app.route("/Sponsor", methods=["GET",'POST'])
-@cache.cached(timeout=1000)
 @auth_role("Sponsor")
 def Sponsor():
     v=request.get_json()
@@ -372,13 +369,12 @@ def inf_fetch():
 @app.route("/camp_fetch", methods=["GET"])
 def camp_fetch():
     user_id = request.args.get('id')
-    print(user_id)
-    camp = Campaign.query.filter_by(id=user_id).all()
+    camp = Campaign.query.filter_by(sp_id=user_id).all()
     print(camp)
     l=[]
     if camp:
         for i in camp:
-            l.append({"name": i.name,"id": i.id,"details":i.details,"budget":i.budget,"visibility":i.status})
+            l.append({"name": i.name,"id": i.id})
     else:
         return jsonify({"error": "User not found"}), 404
     print(l)
