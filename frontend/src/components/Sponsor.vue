@@ -3,20 +3,20 @@
     <Navbar showHomeLink showCampLink showFindinf />
     <div text-align="centre" class="margin-form">
       <h1>Welcome Sponsor {{ idu }}</h1>
-      <h2>Active Campaigns</h2>
+      <h3>Active Campaigns</h3>
       <ul v-if="camp.length > 0">
         <h4 v-for="c in camp" :key="c.camp_id">
           <h3>
-            <br>
-            {{ c.Camp_name }} Visibility: {{ c.Camp_vis }}
+            {{ c.Camp_name }}
           </h3>
+          <h6> {{ c.Camp_vis }}</h6>
           <h5 v-if="c.ads.length > 0">
               <h5 v-for="a in c.ads" :key="a.Ad_id">
-                <br>Ad Name: {{ a.Name }} <br>requirements: {{ a.Req }} <br>Worker: {{ a.Worker }}<br> <br>
+                Ad Name: {{ a.Name }} <br>requirements: {{ a.Req }} <br>Worker: {{ a.Worker }}<br> 
                 <button class="btn btn-primary" @click="this.$router.push({ name: 'Update_ad', params: { id: a.Ad_id,sp_id:idu } })">Update</button>{{  }}
                 <button class="btn btn-danger" @click="this.del_ad(a.Ad_id)">Delete</button>
+                <br><br>
               </h5>
-              <br>
             <button class="btn btn-primary" @click="this.$router.push({ name: 'Addad', params: { id: c.camp_id,sp_id:idu } })">Add Ad</button>  {{  }}
             <button class="btn btn-primary" @click="this.$router.push({ name: 'Update_camp', params: { id: c.camp_id,sp_id:idu } })">Update Campaign</button>{{  }}
             <button class="btn btn-danger" @click="this.del_camp(c.camp_id)">Delete Campaign</button>
@@ -32,17 +32,17 @@
       <br>
       <h3>Requests</h3>
       <ul v-if="req.length > 0">
-        <h4 v-for="r in req" :key="r.req_id">
+        <h5 v-for="r in req" :key="r.req_id">
           Request ID: {{ r.req_id }}<br>
-          Ad: {{ r.ad_name }}<br>
+          Ad name: {{ r.ad_name }}<br>
+          Influencer Name: {{ r.name }}<br>
+          Influencer rating: {{ r.rat }}<br>
+          Influencer Platforms: {{ r.plat }}<br>
           <button class="btn btn-primary" @click="this.accept(r.req_id)">Accept</button>  {{  }}
-        </h4>
+        </h5>
       </ul>
       <h4 v-else>No Requests available Yet</h4>
     </div>
-  </div>
-  <div v-else>
-    {{ login() }}
   </div>
 </template>
 
@@ -65,6 +65,11 @@ export default {
   methods: {
     async checklogin() {
       let token = localStorage.getItem("token");
+      if(token==null){
+        this.$store.commit("setcheckl", false);
+        alert("Please login to access this page");
+        this.$router.push('/');
+      }
       const response = await axios.get("/check_login", {
         headers: {
           Authorization: "Bearer " + token,
@@ -124,6 +129,7 @@ export default {
           Authorization:"Bearer"+token,
         }
       })
+      this.Spn();
     },
     async del_camp(id){
       try {
@@ -165,14 +171,9 @@ export default {
           console.error("Error accepting request:", error);
         }
     },
-    login() {
-      this.$router.push("/");
-    },
   },
   async mounted() { 
-    if (this.$store.state.checkl && this.$store.state.checkspn) {
       await this.Spn();
-    }
   },
   async created() {
     await this.checklogin();

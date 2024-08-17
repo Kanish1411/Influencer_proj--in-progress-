@@ -17,9 +17,6 @@
     </form>
 </div>
 </div>
-<div v-else>
-{{ this.login() }}
-</div>
 </template>
 <script>
 import axios from 'axios';
@@ -39,24 +36,26 @@ export default {
       }
   },
   methods: {
-      async checklogin(){
-          let token = localStorage.getItem("token")
-          const response = await axios.get("/check_login", {
-              headers: {
-                  Authorization: "Bearer " + token
-              }}
-          )
-          if (response.data.message == "success") {
-              this.$store.commit("setcheckl", true)
-              console.log(response, this.checkl)
-          }
-          else {
-          this.$store.commit("setcheckl", false)
-          alert("Please login to access this page")
-          console.log(response)
-          this.$router.push('/')
-          }
-      },
+    async checklogin() {
+      let token = localStorage.getItem("token");
+      if(token==null){
+        this.$store.commit("setcheckl", false);
+        alert("Please login to access this page");
+        this.$router.push('/');
+      }
+      const response = await axios.get("/check_login", {
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      });
+      if (response.data.message === "success") {
+        this.$store.commit("setcheckl", true);
+      } else {
+        this.$store.commit("setcheckl", false);
+        alert("Please login to access this page");
+        this.$router.push('/');
+      }
+    },
       async checkspn(){
           let token = localStorage.getItem("token")
           const response = await axios.get("/check_spn", {
@@ -98,12 +97,6 @@ export default {
             console.error("Error adding campaign:", error);
         }
     },
-
-      async login(){
-        this.$router.push("/")
-      }
-  },
-  mounted(){
   },
   created(){
       this.checklogin(),

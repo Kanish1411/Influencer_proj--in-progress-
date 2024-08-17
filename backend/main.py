@@ -202,7 +202,7 @@ def check_ad():
             return {"message":"success"}
     return {"message" : "Fail"}
 
-@app.route("/Influencer", methods=['GET','POST'])
+@app.route("/Influencer", methods=['POST'])
 @auth_role("Influencer")
 def Influencer():
     v=request.get_json()
@@ -229,7 +229,6 @@ def Sponsor():
     v=request.get_json()
     id=v.get("id")
     camp=[]
-    
     u=Campaign.query.filter_by(sp_id=id).all()
     for i in u:
         add=[]
@@ -247,8 +246,10 @@ def Sponsor():
     r=Request.query.filter_by(req_id=id).all()
     for i in r:
         if i.accepted==False:
+            u=User.query.filter_by(id=i.req_from_id).first()
+            adi=Additional.query.filter_by(user_id=u.id).first()
             a=Ad.query.filter_by(id=i.ad_id).first()
-            req.append({"req_id":i.id,"ad_name":a.name})
+            req.append({"req_id":i.id,"ad_name":a.name,"name":u.name,"rat":adi.rating,"plat":adi.platform})
     print(camp,req)
     return {"camp":camp,"req":req}
 
@@ -330,11 +331,17 @@ def Update_ad():
         return {"message":"success"}
     return {"message":"Failed"}
 
-@app.route("/delete_ad",methods=['GET','POST'])
+@app.route("/delete_ad",methods=['POST'])
 @auth_role("Sponsor")
 def delete_ad():
     v = request.get_json()
     a=Ad.query.filter_by(id=v.get("id")).first()
+    w=Work.query.filter_by(ad_id=a.id).all()
+    for i in w:
+       db.session.delete(i)
+    r=Request.query.filter_by(ad_id=a.id).all()
+    for i in r:
+       db.session.delete(i)
     db.session.delete(a)
     db.session.commit()
     return {"message":"success"}
@@ -428,7 +435,7 @@ def accept_req():
     r=Request.query.filter_by(id=id).first()
     r.accepted=True
     c=Campaign.query.filter_by(id=r.camp_id).first()
-    w=Work(sp_id=c.sp_id,inf_id=r.req_id,ad_id=r.ad_id,state="Accepted")
+    w=Work(sp_id=c.sp_id,inf_id=r.req_from_id,ad_id=r.ad_id,state="Accepted")
     db.session.add(w)
     db.session.commit()
     return jsonify({"msg":"success"})
@@ -449,25 +456,36 @@ def sp_fetch():
     v=request.get_json()
     idu=v.get("id")
     key=v.get("keyword")
-    print(idu)
     camp=[]
     if key!="" and key!=None:
         key = f"%{key}%"
         camp=Campaign.query.filter(Campaign.name.like(key)).all()
+        ad=Ad.query.filter(Ad.req.like(key)).all()
     else:
         camp=Campaign.query.all()
     l=[]
-    for i in camp:
-        ad=Ad.query.filter_by(camp_id=i.id).all()
-        if ad:
-            for j in ad:
-                w=Work.query.filter_by(ad_id=j.id).first()
-                r=Request.query.filter_by(ad_id=j.id,req_from_id=idu).first()
-                add=Additional.query.filter_by(user_id=i.sp_id).first()
-                if r or w:
-                    continue
-                if w==None and  i.status=="public":
-                    l.append({"id":j.id,"ad_name":j.name,"camp_name":i.name,"task":j.req,"price":j.price,"Rating":add.rating})
+    if camp:
+        for i in camp:
+            ad=Ad.query.filter_by(camp_id=i.id).all()
+            if ad:
+                for j in ad:
+                    w=Work.query.filter_by(ad_id=j.id).first()
+                    r=Request.query.filter_by(ad_id=j.id,req_from_id=idu).first()
+                    add=Additional.query.filter_by(user_id=i.sp_id).first()
+                    if r or w:
+                        continue
+                    if w==None and  i.status=="public":
+                        l.append({"id":j.id,"ad_name":j.name,"camp_name":i.name,"task":j.req,"price":j.price,"Rating":add.rating})
+    elif ad:
+        for j in ad:
+            i=Campaign.query.filter_by(id=j.camp_id).first()
+            w=Work.query.filter_by(ad_id=j.id).first()
+            r=Request.query.filter_by(ad_id=j.id,req_from_id=idu).first()
+            add=Additional.query.filter_by(user_id=i.sp_id).first()
+            if r or w:
+                continue
+            if w==None and  i.status=="public":
+                l.append({"id":j.id,"ad_name":j.name,"camp_name":i.name,"task":j.req,"price":j.price,"Rating":add.rating})
     return jsonify(l)
 
 @app.route("/request_ad",methods=["POST"])

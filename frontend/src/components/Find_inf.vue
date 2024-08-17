@@ -21,9 +21,6 @@
     <h4 v-else>No Influencers available Yet</h4>
   </div>
 </div>
-<div v-else>
-  {{ this.login() }}
-</div>
 </template>
 
 <script>
@@ -84,10 +81,6 @@ export default {
             )
             this.inf=response.data.inf
         },
-        async login(){
-          console.log("login required")
-          this.$router.push("/")
-        }
     },
     async mounted() { 
     if (this.$store.state.checkl && this.$store.state.checkspn) {

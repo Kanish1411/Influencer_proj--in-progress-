@@ -6,12 +6,13 @@
       <ul v-if="camp.length > 0">
         <h4 v-for="c in camp" :key="c.camp_id">
           <h3>
-            <br>
-            {{ c.Camp_name }} Visibility: {{ c.Camp_vis }}
+            {{ c.Camp_name }}
           </h3>
+          <h6> {{ c.Camp_vis }}</h6>
           <h5 v-if="c.ads.length > 0">
               <h5 v-for="a in c.ads" :key="a.Ad_id">
-                <br>Ad Name: {{ a.Name }} <br>requirements: {{ a.Req }} <br>Worker: {{ a.Worker }}<br> <br>
+                <br>Ad Name: {{ a.Name }} <br>requirements: {{ a.Req }} <br>Worker: {{ a.Worker }}<br>
+                <button class="btn  btn-danger"> Flag</button>
               </h5>
           </h5>
         </h4>
@@ -24,7 +25,6 @@
 <div v-else>
   {{ this.log=1 }}
 </div>
-
 </template>
 
 <script>
@@ -44,22 +44,26 @@ export default {
     };
   },
     methods: {
-      async checklogin(){
-          let token = localStorage.getItem("token")
-          const response = await axios.get("/check_login", {
-              headers: {
-                  Authorization: "Bearer " + token
-              }}
-          )
-          if (response.data.message == "success") {
-              this.$store.commit("setcheckl", true)
-          }
-          else {
-          this.$store.commit("setcheckl", false)
-          alert("Please login to access this page")
-          this.$router.push('/')
-          }
-      },
+      async checklogin() {
+      let token = localStorage.getItem("token");
+      if(token==null){
+        this.$store.commit("setcheckl", false);
+        alert("Please login to access this page");
+        this.$router.push('/');
+      }
+      const response = await axios.get("/check_login", {
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      });
+      if (response.data.message === "success") {
+        this.$store.commit("setcheckl", true);
+      } else {
+        this.$store.commit("setcheckl", false);
+        alert("Please login to access this page");
+        this.$router.push('/');
+      }
+    },
         async checkad(){
           let token = localStorage.getItem("token")
             const response = await axios.get("/check_ad",{

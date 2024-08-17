@@ -19,15 +19,11 @@
         Request: {{ r.req }}<br>
         Campaign: {{ r.camp }} <br>
         <button class="btn btn-primary" @click="this.accept(r.id)">Accept</button>{{  }}
-        <!-- <button class="btn btn-primary" @click="this.negotiate(r.id)">Negotiate</button>{{  }} -->
         <button class="btn btn-primary" @click="this.reject(r.id)">Reject</button>
       </h4>
   </ul>
   <h4 v-else>No Request available Yet</h4>
 </div>
-</div>
-<div v-else>
-{{ this.login() }}
 </div>
 </template> 
 
@@ -47,23 +43,26 @@ export default {
       }
   },
   methods: {
-      async checklogin(){
-          let token = localStorage.getItem("token")
-          const response = await axios.get("/check_login", {
-              headers: {
-                  Authorization: "Bearer " + token
-              }}
-          )
-          if (response.data.message == "success") {
-              this.$store.commit("setcheckl", true)
-              console.log(response, this.$store.checkl)
-          }
-          else {
-          this.$store.commit("setcheckl", false)
-          alert("Please login to access this page")
-          this.$router.push('/')
-          }
-      },
+    async checklogin() {
+      let token = localStorage.getItem("token");
+      if(token==null){
+        this.$store.commit("setcheckl", false);
+        alert("Please login to access this page");
+        this.$router.push('/');
+      }
+      const response = await axios.get("/check_login", {
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      });
+      if (response.data.message === "success") {
+        this.$store.commit("setcheckl", true);
+      } else {
+        this.$store.commit("setcheckl", false);
+        alert("Please login to access this page");
+        this.$router.push('/');
+      }
+    },
       async checkinf(){
           let token = localStorage.getItem("token")
           const response = await axios.get("/check_inf", {
@@ -102,6 +101,7 @@ export default {
             Authorization:"Bearer"+token
           }
         })
+        this.Inf();
       },
       async reject(id){
         let token=localStorage.getItem("token")
@@ -114,12 +114,6 @@ export default {
         })
         this.Inf();
       },
-      // async negotiate(id){
-
-      // },
-      async login(){
-        this.$router.push("/")
-      }
   },
   mounted(){
       this.Inf();

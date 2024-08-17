@@ -11,8 +11,8 @@
         Name: {{ c.ad_name }}­ ­­­ ­ {{   }} <br>
         Campaign:  {{ c.camp_name }} ­ ­­­ ­ <br>
         Task: {{ c.task }} <br>
-        Price: {{ c.price }}<br>
-        Rating: {{ c.Rating }}
+        Wage: {{ c.price }}<br>
+        Rating: {{ c.Rating }}<br><br>
         <button class="btn btn-primary" @click="this.request(c.id)">Request</button>
     <br>
     </h4>
@@ -35,23 +35,26 @@ data(){
     }
 },
 methods:{
-    async checklogin(){
-        let token=localStorage.getItem("token");
-        const response = await axios.get("/check_login", {
-              headers: {
-                  Authorization: "Bearer " + token
-              }}
-          )
-          if (response.data.message == "success") {
-              this.$store.commit("setcheckl", true)
-              console.log(response, this.$store.checkl)
-          }
-          else {
-          this.$store.commit("setcheckl", false)
-          alert("Please login to access this page")
-          this.$router.push('/')
-          }
-      },
+    async checklogin() {
+      let token = localStorage.getItem("token");
+      if(token==null){
+        this.$store.commit("setcheckl", false);
+        alert("Please login to access this page");
+        this.$router.push('/');
+      }
+      const response = await axios.get("/check_login", {
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      });
+      if (response.data.message === "success") {
+        this.$store.commit("setcheckl", true);
+      } else {
+        this.$store.commit("setcheckl", false);
+        alert("Please login to access this page");
+        this.$router.push('/');
+      }
+    },
       async checkinf(){
           let token = localStorage.getItem("token")
           const response = await axios.get("/check_inf", {
@@ -68,9 +71,6 @@ methods:{
           this.$router.push('/')
           }
       },
-      async login(){
-        this.$router.push("/")
-      },
       async request(id){
         let token = localStorage.getItem("token")
           const response = await axios.post("/request_ad", {
@@ -82,6 +82,7 @@ methods:{
                   Authorization: "Bearer " + token
               }}
           )
+          this.search();
       },
       async search(){
           let token = localStorage.getItem("token")
@@ -98,10 +99,6 @@ methods:{
             console.log(this.data);
             
         },
-        async login(){
-          console.log("login required")
-          this.$router.push("/")
-        }
     
 },
 mounted(){
