@@ -241,7 +241,6 @@ def Sponsor():
                 var=User.query.filter_by(id=inf).first().name
             add.append({"Ad_id":j.id,"Name":j.name,"Req":j.req,"Worker":var})
         camp.append({"camp_id":i.id,"Camp_name":i.name,"Camp_vis":i.status,"ads":add})
-        add
     req=[]
     r=Request.query.filter_by(req_id=id).all()
     for i in r:

@@ -12,6 +12,7 @@ import Update_ad from "./components/Update_ad.vue"
 import Find_inf from "./components/Find_inf.vue"
 import Req_inf from "./components/Req_inf.vue"
 import Find_spn from "./components/Find_spn.vue"
+import About from "./components/About.vue";
 const routes=[
     {
         path:'/',
@@ -37,6 +38,11 @@ const routes=[
         path:"/admin",
         component:Admin,
         name:"Admin"
+    },
+    {
+        path:"/about",
+        component:About,
+        name:"About"
     },
     {
         path:"/request",

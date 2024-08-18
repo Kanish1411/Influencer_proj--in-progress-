@@ -18,6 +18,7 @@
         <select class="form-control" v-model="regRole" required>
           <option value="Sponsor">Sponsor</option>
           <option value="Influencer">Influencer</option>
+          
         </select>
         <br>
         <label for="addon">Additional details (Platform for Inf, Industry for spn):</label>

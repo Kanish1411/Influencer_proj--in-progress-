@@ -64,6 +64,7 @@ export default {
   },
   methods: {
     async checklogin() {
+      try{
       let token = localStorage.getItem("token");
       if(token==null){
         this.$store.commit("setcheckl", false);
@@ -81,6 +82,10 @@ export default {
         this.$store.commit("setcheckl", false);
         alert("Please login to access this page");
         this.$router.push('/');
+      }
+    }
+    catch(error){
+        console.error("Error fetching DATA:", error);
       }
     },
     async checkspn() {
